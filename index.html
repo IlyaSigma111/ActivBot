@@ -99,7 +99,7 @@
                         </div>
                     </div>
 
-                    <!-- Голосование -->
+                    <!-- Голосование (с инлайн-кнопками) -->
                     <div class="template-card" onclick="openPollModal()">
                         <div class="template-gradient" style="background: linear-gradient(145deg, #a64dff20, #c45eff20)"></div>
                         <div class="template-content">
@@ -107,8 +107,8 @@
                                 <i class="fas fa-vote-yea"></i>
                             </div>
                             <div class="template-info">
-                                <h3>Голосование</h3>
-                                <p>Создать опрос с кнопками</p>
+                                <h3>Голосование с кнопками</h3>
+                                <p>Работающие инлайн-кнопки с Firebase</p>
                             </div>
                             <i class="fas fa-chevron-right template-arrow"></i>
                         </div>
@@ -497,7 +497,7 @@
         </div>
     </div>
 
-    <!-- Модальное окно для голосования -->
+    <!-- Модальное окно для голосования - ИСПРАВЛЕНО! -->
     <div id="pollModal" class="modal-overlay">
         <div class="modal-window ultra-glass">
             <div class="modal-header">
@@ -516,7 +516,8 @@
             
             <div class="modal-footer">
                 <button class="glass-button" onclick="closeModal('pollModal')">отмена</button>
-                <button class="glass-button primary" onclick="sendPoll()">создать</button>
+                <!-- ИСПРАВЛЕНО: было sendPoll(), стало sendNativePoll() -->
+                <button class="glass-button primary" onclick="sendNativePoll()">создать опрос</button>
             </div>
         </div>
     </div>
