@@ -100,7 +100,7 @@
                     </div>
 
                     <!-- Голосование (универсальное) -->
-                    <div class="template-card" onclick="sendPoll()">
+                    <div class="template-card" onclick="openPollModal()">
                         <div class="template-gradient" style="background: linear-gradient(145deg, #a64dff20, #c45eff20)"></div>
                         <div class="template-content">
                             <div class="template-icon" style="color: #b47aff">
@@ -108,7 +108,7 @@
                             </div>
                             <div class="template-info">
                                 <h3>Голосование</h3>
-                                <p>Создать опрос с кнопками и статистикой</p>
+                                <p>Создать опрос с кнопками</p>
                             </div>
                             <i class="fas fa-chevron-right template-arrow"></i>
                         </div>
@@ -153,7 +153,7 @@
                     </div>
 
                     <!-- Запрос активности под постом -->
-                    <div class="template-card" onclick="useTemplate('activity')">
+                    <div class="template-card" onclick="openLinkModal('activity')">
                         <div class="template-gradient" style="background: linear-gradient(145deg, #ff4d4d20, #ff853320)"></div>
                         <div class="template-content">
                             <div class="template-icon" style="color: #ff6b6b">
@@ -168,7 +168,7 @@
                     </div>
 
                     <!-- Сбор ссылок с кнопкой -->
-                    <div class="template-card" onclick="sendLinksRequest()">
+                    <div class="template-card" onclick="openProjectModal('links')">
                         <div class="template-gradient" style="background: linear-gradient(145deg, #4dffb820, #4dff8820)"></div>
                         <div class="template-content">
                             <div class="template-icon" style="color: #4fd1c5">
@@ -183,7 +183,7 @@
                     </div>
 
                     <!-- Сбор ссылок (простой) -->
-                    <div class="template-card" onclick="useTemplate('links_old')">
+                    <div class="template-card" onclick="openProjectModal('links_simple')">
                         <div class="template-gradient" style="background: linear-gradient(145deg, #38b2ac20, #31979520)"></div>
                         <div class="template-content">
                             <div class="template-icon" style="color: #38b2ac">
@@ -221,7 +221,7 @@
                     </div>
 
                     <!-- Напоминание о дедлайне -->
-                    <div class="template-card" onclick="sendDeadlineReminder()">
+                    <div class="template-card" onclick="openTaskModal()">
                         <div class="template-gradient" style="background: linear-gradient(145deg, #ffaa4d20, #ffc44d20)"></div>
                         <div class="template-content">
                             <div class="template-icon" style="color: #ffb347">
@@ -236,7 +236,7 @@
                     </div>
 
                     <!-- Напоминание (простое) -->
-                    <div class="template-card" onclick="useTemplate('deadline_simple')">
+                    <div class="template-card" onclick="openSimpleTaskModal()">
                         <div class="template-gradient" style="background: linear-gradient(145deg, #fbbf2420, #f59e0b20)"></div>
                         <div class="template-content">
                             <div class="template-icon" style="color: #f59e0b">
@@ -259,7 +259,7 @@
                     </div>
 
                     <!-- Поздравление с праздником -->
-                    <div class="template-card" onclick="useTemplate('congrats')">
+                    <div class="template-card" onclick="openHolidayModal()">
                         <div class="template-gradient" style="background: linear-gradient(145deg, #ff4d9e20, #ff6bb420)"></div>
                         <div class="template-content">
                             <div class="template-icon" style="color: #ff7eb3">
@@ -274,7 +274,7 @@
                     </div>
 
                     <!-- День рождения -->
-                    <div class="template-card" onclick="useTemplate('birthday')">
+                    <div class="template-card" onclick="openBirthdayModal()">
                         <div class="template-gradient" style="background: linear-gradient(145deg, #f472b620, #ec489920)"></div>
                         <div class="template-content">
                             <div class="template-icon" style="color: #ec4899">
@@ -297,7 +297,7 @@
                     </div>
 
                     <!-- Отчет о мероприятии -->
-                    <div class="template-card" onclick="useTemplate('report')">
+                    <div class="template-card" onclick="openReportModal()">
                         <div class="template-gradient" style="background: linear-gradient(145deg, #4da6ff20, #6f9eff20)"></div>
                         <div class="template-content">
                             <div class="template-icon" style="color: #6c8cff">
@@ -312,7 +312,7 @@
                     </div>
 
                     <!-- Срочное объявление -->
-                    <div class="template-card" onclick="useTemplate('urgent')">
+                    <div class="template-card" onclick="openUrgentModal()">
                         <div class="template-gradient" style="background: linear-gradient(145deg, #ef444420, #dc262620)"></div>
                         <div class="template-content">
                             <div class="template-icon" style="color: #ef4444">
@@ -418,10 +418,10 @@
                         <span>быстрые действия:</span>
                     </div>
                     <div class="quick-buttons">
-                        <button class="glass-button tiny" onclick="sendPoll()">📊 опрос</button>
+                        <button class="glass-button tiny" onclick="openPollModal()">📊 опрос</button>
                         <button class="glass-button tiny" onclick="openEventModal()">🎪 мероприятие</button>
                         <button class="glass-button tiny" onclick="sendConfirmationPoll()">⚠️ важное</button>
-                        <button class="glass-button tiny" onclick="useTemplate('congrats')">🎉 поздравление</button>
+                        <button class="glass-button tiny" onclick="openHolidayModal()">🎉 поздравление</button>
                     </div>
                 </div>
             </div>
@@ -429,19 +429,19 @@
 
         <!-- Мобильные быстрые действия -->
         <div class="mobile-actions">
-            <button class="glass-button mobile" onclick="sendPoll()" title="Голосование">
+            <button class="glass-button mobile" onclick="openPollModal()" title="Голосование">
                 <i class="fas fa-vote-yea"></i>
             </button>
             <button class="glass-button mobile" onclick="openEventModal()" title="Мероприятие">
                 <i class="fas fa-calendar"></i>
             </button>
-            <button class="glass-button mobile" onclick="useTemplate('activity')" title="Активность">
+            <button class="glass-button mobile" onclick="openLinkModal('activity')" title="Активность">
                 <i class="fas fa-fire"></i>
             </button>
             <button class="glass-button mobile" onclick="sendConfirmationPoll()" title="Важное">
                 <i class="fas fa-exclamation"></i>
             </button>
-            <button class="glass-button mobile" onclick="useTemplate('congrats')" title="Поздравить">
+            <button class="glass-button mobile" onclick="openHolidayModal()" title="Поздравить">
                 <i class="fas fa-gift"></i>
             </button>
         </div>
@@ -452,7 +452,7 @@
         <div class="modal-window ultra-glass">
             <div class="modal-header">
                 <h3>новое мероприятие</h3>
-                <button class="glass-button close" onclick="closeEventModal()">
+                <button class="glass-button close" onclick="closeModal('eventModal')">
                     <i class="fas fa-times"></i>
                 </button>
             </div>
@@ -490,33 +490,233 @@
             </div>
             
             <div class="modal-footer">
-                <button class="glass-button" onclick="closeEventModal()">отмена</button>
+                <button class="glass-button" onclick="closeModal('eventModal')">отмена</button>
                 <button class="glass-button primary" onclick="sendEventPoll()">создать с голосованием</button>
                 <button class="glass-button" onclick="createEventInvite()">только текст</button>
             </div>
         </div>
     </div>
 
-    <!-- Модальное окно для своего сообщения -->
-    <div id="customMessageModal" class="modal-overlay">
+    <!-- Модальное окно для голосования -->
+    <div id="pollModal" class="modal-overlay">
         <div class="modal-window ultra-glass">
             <div class="modal-header">
-                <h3>свое сообщение</h3>
-                <button class="glass-button close" onclick="closeCustomModal()">
+                <h3>новое голосование</h3>
+                <button class="glass-button close" onclick="closeModal('pollModal')">
                     <i class="fas fa-times"></i>
                 </button>
             </div>
             
             <div class="modal-body">
                 <div class="input-group">
-                    <label>текст сообщения</label>
-                    <textarea id="customMessageText" class="glass-textarea" rows="4" placeholder="введите текст..."></textarea>
+                    <label>вопрос</label>
+                    <input type="text" id="pollQuestion" class="glass-input" placeholder="Кто идет на мероприятие?">
                 </div>
             </div>
             
             <div class="modal-footer">
-                <button class="glass-button" onclick="closeCustomModal()">отмена</button>
-                <button class="glass-button primary" onclick="sendCustomMessage()">отправить</button>
+                <button class="glass-button" onclick="closeModal('pollModal')">отмена</button>
+                <button class="glass-button primary" onclick="sendPoll()">создать</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Модальное окно для ссылки -->
+    <div id="linkModal" class="modal-overlay">
+        <div class="modal-window ultra-glass">
+            <div class="modal-header">
+                <h3>введите ссылку</h3>
+                <button class="glass-button close" onclick="closeModal('linkModal')">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            
+            <div class="modal-body">
+                <div class="input-group">
+                    <label>ссылка на пост</label>
+                    <input type="text" id="linkInput" class="glass-input" placeholder="https://t.me/...">
+                </div>
+            </div>
+            
+            <div class="modal-footer">
+                <button class="glass-button" onclick="closeModal('linkModal')">отмена</button>
+                <button class="glass-button primary" onclick="submitLink()">готово</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Модальное окно для проекта -->
+    <div id="projectModal" class="modal-overlay">
+        <div class="modal-window ultra-glass">
+            <div class="modal-header">
+                <h3>название проекта</h3>
+                <button class="glass-button close" onclick="closeModal('projectModal')">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            
+            <div class="modal-body">
+                <div class="input-group">
+                    <label>проект</label>
+                    <input type="text" id="projectInput" class="glass-input" placeholder="проекта">
+                </div>
+            </div>
+            
+            <div class="modal-footer">
+                <button class="glass-button" onclick="closeModal('projectModal')">отмена</button>
+                <button class="glass-button primary" onclick="submitProject()">готово</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Модальное окно для задачи -->
+    <div id="taskModal" class="modal-overlay">
+        <div class="modal-window ultra-glass">
+            <div class="modal-header">
+                <h3>напоминание</h3>
+                <button class="glass-button close" onclick="closeModal('taskModal')">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            
+            <div class="modal-body">
+                <div class="input-group">
+                    <label>задание</label>
+                    <input type="text" id="taskInput" class="glass-input" placeholder="проект">
+                </div>
+                <div class="input-group">
+                    <label>дедлайн</label>
+                    <input type="text" id="dateInput" class="glass-input" placeholder="завтра">
+                </div>
+            </div>
+            
+            <div class="modal-footer">
+                <button class="glass-button" onclick="closeModal('taskModal')">отмена</button>
+                <button class="glass-button primary" onclick="submitTask()">готово</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Модальное окно для простой задачи -->
+    <div id="simpleTaskModal" class="modal-overlay">
+        <div class="modal-window ultra-glass">
+            <div class="modal-header">
+                <h3>простое напоминание</h3>
+                <button class="glass-button close" onclick="closeModal('simpleTaskModal')">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            
+            <div class="modal-body">
+                <div class="input-group">
+                    <label>задание</label>
+                    <input type="text" id="simpleTaskInput" class="glass-input" placeholder="проект">
+                </div>
+                <div class="input-group">
+                    <label>дедлайн</label>
+                    <input type="text" id="simpleDateInput" class="glass-input" placeholder="завтра">
+                </div>
+            </div>
+            
+            <div class="modal-footer">
+                <button class="glass-button" onclick="closeModal('simpleTaskModal')">отмена</button>
+                <button class="glass-button primary" onclick="submitSimpleTask()">готово</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Модальное окно для праздника -->
+    <div id="holidayModal" class="modal-overlay">
+        <div class="modal-window ultra-glass">
+            <div class="modal-header">
+                <h3>поздравление</h3>
+                <button class="glass-button close" onclick="closeModal('holidayModal')">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            
+            <div class="modal-body">
+                <div class="input-group">
+                    <label>праздник</label>
+                    <input type="text" id="holidayInput" class="glass-input" placeholder="праздником">
+                </div>
+            </div>
+            
+            <div class="modal-footer">
+                <button class="glass-button" onclick="closeModal('holidayModal')">отмена</button>
+                <button class="glass-button primary" onclick="submitHoliday()">готово</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Модальное окно для дня рождения -->
+    <div id="birthdayModal" class="modal-overlay">
+        <div class="modal-window ultra-glass">
+            <div class="modal-header">
+                <h3>день рождения</h3>
+                <button class="glass-button close" onclick="closeModal('birthdayModal')">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            
+            <div class="modal-body">
+                <div class="input-group">
+                    <label>имя именинника</label>
+                    <input type="text" id="nameInput" class="glass-input" placeholder="Друг">
+                </div>
+            </div>
+            
+            <div class="modal-footer">
+                <button class="glass-button" onclick="closeModal('birthdayModal')">отмена</button>
+                <button class="glass-button primary" onclick="submitBirthday()">готово</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Модальное окно для отчета -->
+    <div id="reportModal" class="modal-overlay">
+        <div class="modal-window ultra-glass">
+            <div class="modal-header">
+                <h3>отчет</h3>
+                <button class="glass-button close" onclick="closeModal('reportModal')">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            
+            <div class="modal-body">
+                <div class="input-group">
+                    <label>мероприятие</label>
+                    <input type="text" id="eventReportInput" class="glass-input" placeholder="мероприятия">
+                </div>
+            </div>
+            
+            <div class="modal-footer">
+                <button class="glass-button" onclick="closeModal('reportModal')">отмена</button>
+                <button class="glass-button primary" onclick="submitReport()">готово</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Модальное окно для срочного -->
+    <div id="urgentModal" class="modal-overlay">
+        <div class="modal-window ultra-glass">
+            <div class="modal-header">
+                <h3>срочное объявление</h3>
+                <button class="glass-button close" onclick="closeModal('urgentModal')">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            
+            <div class="modal-body">
+                <div class="input-group">
+                    <label>текст</label>
+                    <textarea id="urgentText" class="glass-textarea" rows="3" placeholder="текст объявления..."></textarea>
+                </div>
+            </div>
+            
+            <div class="modal-footer">
+                <button class="glass-button" onclick="closeModal('urgentModal')">отмена</button>
+                <button class="glass-button primary" onclick="submitUrgent()">готово</button>
             </div>
         </div>
     </div>
