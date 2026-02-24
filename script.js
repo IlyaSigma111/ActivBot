@@ -9,38 +9,31 @@ const CONFIG = {
 let messageHistory = [];
 let sessionStartTime = new Date();
 let messagesCount = 0;
+let currentTemplateType = '';
 
 // ===== ШАБЛОНЫ =====
 const TEMPLATES = {
-    // Активность под постом
     activity: (link = '[ссылка]') => 
         `🔥 РЕБЯТА, ПОАКТИВНИЧАЙТЕ!\n\nНам очень важна ваша поддержка под этим постом:\n${link}\n\nЖду реакции и комментарии! 🙏`,
 
-    // Быстрый опрос
     quickPoll: () => 
         `📊 КТО ИДЕТ?\n\n👍 - Пойду\n🤔 - Не уверен\n👎 - Не пойду\n\nНажимайте на кнопки ниже!`,
 
-    // Простое напоминание
     deadlineSimple: (task = 'задание', date = 'завтра') => 
         `⏰ НАПОМИНАНИЕ\n\n${task} нужно сдать до ${date}.\n\nНе откладывайте!`,
 
-    // Сбор ссылок простой
     linksSimple: (project = 'проекта') => 
         `🔗 СБОР ССЫЛОК\n\nСкидывайте в комментарии ссылки на работы по ${project}.\n\nФормат: Фамилия - ссылка`,
 
-    // Поздравление
     congrats: (holiday = 'праздником') => 
         `🎉 ПОЗДРАВЛЯЮ!\n\nС ${holiday}! Желаю успехов, вдохновения и отличного настроения! ✨`,
 
-    // Срочное
     urgent: (message = '') => 
         `⚠️ СРОЧНО!\n\n${message}\n\nПрошу всех ознакомиться!`,
 
-    // Отчет
     report: (event = 'мероприятия') => 
         `📝 ОТЧЕТ О МЕРОПРИЯТИИ\n\nДелитесь впечатлениями о ${event} в комментариях!\n\nЧто понравилось? Что можно улучшить?`,
 
-    // День рождения
     birthday: (name = 'именинника') => 
         `🎂 С ДНЕМ РОЖДЕНИЯ, ${name}!\n\nЖелаем счастья, здоровья, успехов в учебе и отличного настроения! 🎁🎈`
 };
@@ -52,7 +45,6 @@ document.addEventListener('DOMContentLoaded', () => {
     loadHistory();
     addToHistory('система готова', 'info');
     
-    // Показываем токен (скрытый)
     const tokenDisplay = document.getElementById('botTokenDisplay');
     if (tokenDisplay) {
         tokenDisplay.textContent = `токен: ${CONFIG.BOT_TOKEN.substring(0, 10)}...`;
@@ -72,6 +64,212 @@ function setupEventListeners() {
             }
         });
     }
+    
+    // Закрытие модалок по клику вне
+    window.onclick = (event) => {
+        const modals = ['eventModal', 'pollModal', 'linkModal', 'projectModal', 
+                       'taskModal', 'simpleTaskModal', 'holidayModal', 
+                       'birthdayModal', 'reportModal', 'urgentModal'];
+        
+        modals.forEach(modalId => {
+            const modal = document.getElementById(modalId);
+            if (event.target === modal) {
+                closeModal(modalId);
+            }
+        });
+    };
+}
+
+// ===== РАБОТА С МОДАЛКАМИ =====
+function openModal(modalId) {
+    document.getElementById(modalId).classList.add('show');
+}
+
+function closeModal(modalId) {
+    document.getElementById(modalId).classList.remove('show');
+}
+
+// ===== ОТКРЫТИЕ РАЗНЫХ МОДАЛОК =====
+function openPollModal() {
+    openModal('pollModal');
+}
+
+function openEventModal() {
+    openModal('eventModal');
+}
+
+function openLinkModal(type) {
+    currentTemplateType = type;
+    openModal('linkModal');
+}
+
+function openProjectModal(type) {
+    currentTemplateType = type;
+    openModal('projectModal');
+}
+
+function openTaskModal() {
+    openModal('taskModal');
+}
+
+function openSimpleTaskModal() {
+    openModal('simpleTaskModal');
+}
+
+function openHolidayModal() {
+    openModal('holidayModal');
+}
+
+function openBirthdayModal() {
+    openModal('birthdayModal');
+}
+
+function openReportModal() {
+    openModal('reportModal');
+}
+
+function openUrgentModal() {
+    openModal('urgentModal');
+}
+
+// ===== ОБРАБОТЧИКИ МОДАЛОК =====
+function submitLink() {
+    const link = document.getElementById('linkInput').value.trim();
+    if (!link) {
+        showStatus('введите ссылку', 'error');
+        return;
+    }
+    
+    const textarea = document.getElementById('messageText');
+    textarea.value = TEMPLATES.activity(link);
+    closeModal('linkModal');
+    document.getElementById('linkInput').value = '';
+    showStatus('✓ шаблон вставлен', 'success');
+    
+    // Подсветка
+    textarea.style.borderColor = '#6c8cff';
+    setTimeout(() => textarea.style.borderColor = '', 300);
+}
+
+function submitProject() {
+    const project = document.getElementById('projectInput').value.trim();
+    
+    const textarea = document.getElementById('messageText');
+    
+    if (currentTemplateType === 'links') {
+        if (!project) {
+            showStatus('введите название проекта', 'error');
+            return;
+        }
+        textarea.value = `🔗 СБОР ССЫЛОК\n\nСкидывайте ссылки на работы по ${project}.\n\nФормат: Фамилия - ссылка`;
+    } else if (currentTemplateType === 'links_simple') {
+        textarea.value = TEMPLATES.linksSimple(project || 'проекта');
+    }
+    
+    closeModal('projectModal');
+    document.getElementById('projectInput').value = '';
+    showStatus('✓ шаблон вставлен', 'success');
+    
+    textarea.style.borderColor = '#6c8cff';
+    setTimeout(() => textarea.style.borderColor = '', 300);
+}
+
+function submitTask() {
+    const task = document.getElementById('taskInput').value.trim();
+    const date = document.getElementById('dateInput').value.trim();
+    
+    if (!task || !date) {
+        showStatus('заполните все поля', 'error');
+        return;
+    }
+    
+    const textarea = document.getElementById('messageText');
+    textarea.value = `⏰ НАПОМИНАНИЕ\n\n${task} нужно сдать до ${date}.\n\nПодтвердите, что приняли информацию:`;
+    
+    closeModal('taskModal');
+    document.getElementById('taskInput').value = '';
+    document.getElementById('dateInput').value = '';
+    showStatus('✓ шаблон вставлен', 'success');
+    
+    textarea.style.borderColor = '#6c8cff';
+    setTimeout(() => textarea.style.borderColor = '', 300);
+}
+
+function submitSimpleTask() {
+    const task = document.getElementById('simpleTaskInput').value.trim();
+    const date = document.getElementById('simpleDateInput').value.trim();
+    
+    const textarea = document.getElementById('messageText');
+    textarea.value = TEMPLATES.deadlineSimple(task || 'задание', date || 'завтра');
+    
+    closeModal('simpleTaskModal');
+    document.getElementById('simpleTaskInput').value = '';
+    document.getElementById('simpleDateInput').value = '';
+    showStatus('✓ шаблон вставлен', 'success');
+    
+    textarea.style.borderColor = '#6c8cff';
+    setTimeout(() => textarea.style.borderColor = '', 300);
+}
+
+function submitHoliday() {
+    const holiday = document.getElementById('holidayInput').value.trim();
+    
+    const textarea = document.getElementById('messageText');
+    textarea.value = TEMPLATES.congrats(holiday || 'праздником');
+    
+    closeModal('holidayModal');
+    document.getElementById('holidayInput').value = '';
+    showStatus('✓ шаблон вставлен', 'success');
+    
+    textarea.style.borderColor = '#6c8cff';
+    setTimeout(() => textarea.style.borderColor = '', 300);
+}
+
+function submitBirthday() {
+    const name = document.getElementById('nameInput').value.trim();
+    
+    const textarea = document.getElementById('messageText');
+    textarea.value = TEMPLATES.birthday(name || 'Друг');
+    
+    closeModal('birthdayModal');
+    document.getElementById('nameInput').value = '';
+    showStatus('✓ шаблон вставлен', 'success');
+    
+    textarea.style.borderColor = '#6c8cff';
+    setTimeout(() => textarea.style.borderColor = '', 300);
+}
+
+function submitReport() {
+    const event = document.getElementById('eventReportInput').value.trim();
+    
+    const textarea = document.getElementById('messageText');
+    textarea.value = TEMPLATES.report(event || 'мероприятия');
+    
+    closeModal('reportModal');
+    document.getElementById('eventReportInput').value = '';
+    showStatus('✓ шаблон вставлен', 'success');
+    
+    textarea.style.borderColor = '#6c8cff';
+    setTimeout(() => textarea.style.borderColor = '', 300);
+}
+
+function submitUrgent() {
+    const text = document.getElementById('urgentText').value.trim();
+    
+    if (!text) {
+        showStatus('введите текст', 'error');
+        return;
+    }
+    
+    const textarea = document.getElementById('messageText');
+    textarea.value = TEMPLATES.urgent(text);
+    
+    closeModal('urgentModal');
+    document.getElementById('urgentText').value = '';
+    showStatus('✓ шаблон вставлен', 'success');
+    
+    textarea.style.borderColor = '#6c8cff';
+    setTimeout(() => textarea.style.borderColor = '', 300);
 }
 
 // ===== ПОЛУЧЕНИЕ ID ГРУППЫ =====
@@ -154,8 +352,11 @@ function copyToClipboard() {
 
 // ===== ОТПРАВКА С КНОПКАМИ (ГОЛОСОВАНИЕ) =====
 async function sendPoll() {
-    const question = prompt('Вопрос для голосования:', 'Кто идет на мероприятие?');
-    if (question === null) return;
+    const question = document.getElementById('pollQuestion').value.trim();
+    if (!question) {
+        showStatus('введите вопрос', 'error');
+        return;
+    }
     
     const groupId = getSelectedGroup();
     if (!groupId) {
@@ -194,6 +395,8 @@ async function sendPoll() {
             document.getElementById('messagesCount').textContent = messagesCount;
             showStatus('✓ голосование создано', 'success');
             addToHistory('голосование', 'success');
+            closeModal('pollModal');
+            document.getElementById('pollQuestion').value = '';
         } else {
             showStatus(`✗ ошибка: ${data.description}`, 'error');
         }
@@ -251,8 +454,11 @@ async function sendQuickPoll() {
 
 // ===== СБОР ССЫЛОК С КНОПКОЙ =====
 async function sendLinksRequest() {
-    const project = prompt('По какому проекту собираем ссылки?', 'проекта');
-    if (project === null) return;
+    const project = document.getElementById('projectInput').value.trim();
+    if (!project) {
+        showStatus('введите название проекта', 'error');
+        return;
+    }
     
     const groupId = getSelectedGroup();
     if (!groupId) {
@@ -290,6 +496,8 @@ async function sendLinksRequest() {
             document.getElementById('messagesCount').textContent = messagesCount;
             showStatus('✓ запрос ссылок отправлен', 'success');
             addToHistory('запрос ссылок', 'success');
+            closeModal('projectModal');
+            document.getElementById('projectInput').value = '';
         } else {
             showStatus(`✗ ошибка: ${data.description}`, 'error');
         }
@@ -300,9 +508,13 @@ async function sendLinksRequest() {
 
 // ===== НАПОМИНАНИЕ С КНОПКОЙ =====
 async function sendDeadlineReminder() {
-    const task = prompt('Какое задание?', 'проект');
-    const date = prompt('Дедлайн?', 'завтра');
-    if (task === null || date === null) return;
+    const task = document.getElementById('taskInput').value.trim();
+    const date = document.getElementById('dateInput').value.trim();
+    
+    if (!task || !date) {
+        showStatus('заполните все поля', 'error');
+        return;
+    }
     
     const groupId = getSelectedGroup();
     if (!groupId) {
@@ -339,6 +551,9 @@ async function sendDeadlineReminder() {
             document.getElementById('messagesCount').textContent = messagesCount;
             showStatus('✓ напоминание отправлено', 'success');
             addToHistory('напоминание', 'success');
+            closeModal('taskModal');
+            document.getElementById('taskInput').value = '';
+            document.getElementById('dateInput').value = '';
         } else {
             showStatus(`✗ ошибка: ${data.description}`, 'error');
         }
@@ -399,70 +614,7 @@ async function sendConfirmationPoll() {
     }
 }
 
-// ===== ИСПОЛЬЗОВАНИЕ ПРОСТЫХ ШАБЛОНОВ =====
-function useTemplate(type) {
-    const textarea = document.getElementById('messageText');
-    
-    switch(type) {
-        case 'activity':
-            const link = prompt('Ссылка на пост:', 'https://t.me/...');
-            if (link !== null) {
-                textarea.value = TEMPLATES.activity(link || 'ссылка не указана');
-            }
-            break;
-            
-        case 'links_old':
-            const project = prompt('Проект:', 'проекта');
-            textarea.value = TEMPLATES.linksSimple(project || 'проекта');
-            break;
-            
-        case 'congrats':
-            const holiday = prompt('Праздник:', 'праздником');
-            textarea.value = TEMPLATES.congrats(holiday || 'праздником');
-            break;
-            
-        case 'deadline_simple':
-            const task = prompt('Задание:', 'проект');
-            const date = prompt('Дедлайн:', 'завтра');
-            textarea.value = TEMPLATES.deadlineSimple(task || 'задание', date || 'завтра');
-            break;
-            
-        case 'urgent':
-            const urgentMsg = prompt('Текст срочного объявления:');
-            if (urgentMsg !== null) {
-                textarea.value = TEMPLATES.urgent(urgentMsg || 'СРОЧНО!');
-            }
-            break;
-            
-        case 'report':
-            const event = prompt('Мероприятие:', 'мероприятия');
-            textarea.value = TEMPLATES.report(event || 'мероприятия');
-            break;
-            
-        case 'birthday':
-            const name = prompt('Имя именинника:', 'Друг');
-            textarea.value = TEMPLATES.birthday(name || 'Друг');
-            break;
-    }
-    
-    // Подсветка
-    textarea.style.transition = 'all 0.2s';
-    textarea.style.borderColor = '#6c8cff';
-    setTimeout(() => textarea.style.borderColor = '', 300);
-    
-    showStatus('✓ шаблон вставлен', 'success');
-}
-
-// ===== МОДАЛКА МЕРОПРИЯТИЯ =====
-function openEventModal() {
-    document.getElementById('eventModal').classList.add('show');
-}
-
-function closeEventModal() {
-    document.getElementById('eventModal').classList.remove('show');
-}
-
-// ===== ОТПРАВКА МЕРОПРИЯТИЯ С ГОЛОСОВАНИЕМ =====
+// ===== МЕРОПРИЯТИЕ =====
 async function sendEventPoll() {
     const name = document.getElementById('eventName').value;
     const date = document.getElementById('eventDate').value;
@@ -520,11 +672,14 @@ async function sendEventPoll() {
             document.getElementById('messagesCount').textContent = messagesCount;
             showStatus('✓ приглашение отправлено', 'success');
             addToHistory(`мероприятие: ${name}`, 'success');
-            closeEventModal();
+            closeModal('eventModal');
             
-            // Очистка полей
-            ['eventName', 'eventDate', 'eventTime', 'eventPlace', 'eventDresscode', 'eventBring']
-                .forEach(id => document.getElementById(id).value = '');
+            document.getElementById('eventName').value = '';
+            document.getElementById('eventDate').value = '';
+            document.getElementById('eventTime').value = '';
+            document.getElementById('eventPlace').value = '';
+            document.getElementById('eventDresscode').value = '';
+            document.getElementById('eventBring').value = '';
         } else {
             showStatus(`✗ ошибка: ${data.description}`, 'error');
         }
@@ -557,34 +712,16 @@ function createEventInvite() {
         `Ждем всех! ✨`;
     
     document.getElementById('messageText').value = message;
-    closeEventModal();
+    closeModal('eventModal');
     
-    // Очистка полей
-    ['eventName', 'eventDate', 'eventTime', 'eventPlace', 'eventDresscode', 'eventBring']
-        .forEach(id => document.getElementById(id).value = '');
+    document.getElementById('eventName').value = '';
+    document.getElementById('eventDate').value = '';
+    document.getElementById('eventTime').value = '';
+    document.getElementById('eventPlace').value = '';
+    document.getElementById('eventDresscode').value = '';
+    document.getElementById('eventBring').value = '';
     
     showStatus('✓ текст мероприятия создан', 'success');
-}
-
-// ===== МОДАЛКА СВОЕГО СООБЩЕНИЯ =====
-function openCustomModal() {
-    document.getElementById('customMessageModal').classList.add('show');
-}
-
-function closeCustomModal() {
-    document.getElementById('customMessageModal').classList.remove('show');
-}
-
-async function sendCustomMessage() {
-    const message = document.getElementById('customMessageText').value.trim();
-    if (!message) {
-        showStatus('введите сообщение', 'error');
-        return;
-    }
-    
-    document.getElementById('messageText').value = message;
-    closeCustomModal();
-    showStatus('✓ сообщение вставлено', 'success');
 }
 
 // ===== ИСТОРИЯ =====
@@ -708,16 +845,3 @@ function clearEditor() {
     document.getElementById('messageText').value = '';
     showStatus('✓ редактор очищен', 'info');
 }
-
-// ===== ЗАКРЫТИЕ МОДАЛОК ПО КЛИКУ ВНЕ =====
-window.onclick = (event) => {
-    const eventModal = document.getElementById('eventModal');
-    const customModal = document.getElementById('customMessageModal');
-    
-    if (event.target === eventModal) {
-        closeEventModal();
-    }
-    if (event.target === customModal) {
-        closeCustomModal();
-    }
-};
