@@ -221,7 +221,7 @@ window.submitUrgent = function() {
     showStatus('✓ шаблон вставлен', 'success');
 };
 
-// ===== ОТПРАВКА МЕРОПРИЯТИЯ С ОПРОСОМ (РОДНОЙ ОПРОС) =====
+// ===== ОТПРАВКА МЕРОПРИЯТИЯ С ОПРОСОМ (СВЯЗНОЕ СООБЩЕНИЕ) =====
 window.sendEventPoll = async function() {
     console.log('sendEventPoll');
     
@@ -243,35 +243,41 @@ window.sendEventPoll = async function() {
         return;
     }
     
-    // Сначала отправляем информацию о мероприятии
+    // Формируем красивое сообщение с рамкой
     const infoMessage = 
-        `🎪 МЕРОПРИЯТИЕ: ${name}\n\n` +
+        `╔════════════════════════════╗\n` +
+        `║         🎪 МЕРОПРИЯТИЕ       ║\n` +
+        `╚════════════════════════════╝\n\n` +
+        `📌 <b>${name}</b>\n\n` +
         `📅 Дата: ${date}\n` +
         `⏰ Время: ${time}\n` +
         `📍 Место: ${place || 'не указано'}\n\n` +
         `👔 Дресс-код: ${dresscode || 'любой'}\n` +
-        `🎒 С собой: ${bring || 'ничего'}`;
+        `🎒 С собой: ${bring || 'ничего'}\n\n` +
+        `─────────────────────────────\n` +
+        `👇 <b>ОПРОС НИЖЕ 👇</b>`;
     
-    await fetch(`${CONFIG.API_URL}${CONFIG.BOT_TOKEN}/sendMessage`, {
-        method: 'POST',
-        headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({
-            chat_id: groupId,
-            text: infoMessage,
-            parse_mode: 'HTML'
-        })
-    });
-    
-    // Потом отправляем родной опрос Telegram
     try {
+        // Отправляем информацию о мероприятии
+        await fetch(`${CONFIG.API_URL}${CONFIG.BOT_TOKEN}/sendMessage`, {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({
+                chat_id: groupId,
+                text: infoMessage,
+                parse_mode: 'HTML'
+            })
+        });
+        
+        // Отправляем опрос с вопросом, привязанным к мероприятию
         const response = await fetch(`${CONFIG.API_URL}${CONFIG.BOT_TOKEN}/sendPoll`, {
             method: 'POST',
             headers: {'Content-Type': 'application/json'},
             body: JSON.stringify({
                 chat_id: groupId,
-                question: "Кто идет?",
+                question: `❓ Кто идет на "${name}"?`,
                 options: ["✅ Пойду", "🤔 Не уверен", "❌ Не пойду"],
-                is_anonymous: false, // Показывать кто голосовал
+                is_anonymous: false,
                 allows_multiple_answers: false
             })
         });
@@ -281,10 +287,11 @@ window.sendEventPoll = async function() {
         if (data.ok) {
             messagesCount++;
             document.getElementById('messagesCount').textContent = messagesCount;
-            showStatus('✓ мероприятие + опрос отправлены', 'success');
-            addToHistory(`мероприятие: ${name}`, 'success');
+            showStatus('✓ мероприятие и опрос отправлены', 'success');
+            addToHistory(`мероприятие: ${name} с опросом`, 'success');
             closeModal('eventModal');
             
+            // Очищаем поля
             document.getElementById('eventName').value = '';
             document.getElementById('eventDate').value = '';
             document.getElementById('eventTime').value = '';
