@@ -1,22 +1,3 @@
-// ===== ИМПОРТ FIREBASE =====
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-import { getDatabase, ref, set, push, onValue, update, get } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
-
-// ===== КОНФИГУРАЦИЯ FIREBASE =====
-const firebaseConfig = {
-    apiKey: "AIzaSyCH8u2hdBUncp1MUoetEWfgltw2hMo7eCc",
-    authDomain: "activbot-1b074.firebaseapp.com",
-    databaseURL: "https://activbot-1b074-default-rtdb.firebaseio.com",
-    projectId: "activbot-1b074",
-    storageBucket: "activbot-1b074.firebasestorage.app",
-    messagingSenderId: "6200034068",
-    appId: "1:6200034068:web:830c07d1e8f5cc6134b801"
-};
-
-// ===== ИНИЦИАЛИЗАЦИЯ FIREBASE =====
-const app = initializeApp(firebaseConfig);
-const database = getDatabase(app);
-
 // ===== КОНФИГУРАЦИЯ БОТА =====
 const CONFIG = {
     BOT_TOKEN: '8526725790:AAEu_vqnQ0hcn4gJUstOb2-bTCO7kIalQ7U',
@@ -59,7 +40,7 @@ const TEMPLATES = {
 
 // ===== ИНИЦИАЛИЗАЦИЯ =====
 document.addEventListener('DOMContentLoaded', () => {
-    console.log('EduBot инициализирован с Firebase');
+    console.log('EduBot инициализирован');
     setupEventListeners();
     updateSessionTime();
     loadHistory();
@@ -101,13 +82,13 @@ function setupEventListeners() {
 }
 
 // ===== РАБОТА С МОДАЛКАМИ =====
-window.openModal = function(modalId) {
+function openModal(modalId) {
     document.getElementById(modalId).classList.add('show');
-};
+}
 
-window.closeModal = function(modalId) {
+function closeModal(modalId) {
     document.getElementById(modalId).classList.remove('show');
-};
+}
 
 // ===== ОТКРЫТИЕ РАЗНЫХ МОДАЛОК =====
 window.openPollModal = function() {
@@ -295,9 +276,9 @@ window.submitUrgent = function() {
 
 // Создание нового голосования в Firebase
 async function createPollInFirebase(pollData) {
-    const pollsRef = ref(database, 'polls');
-    const newPollRef = push(pollsRef);
-    await set(newPollRef, {
+    const pollsRef = window.database.ref('polls');
+    const newPollRef = pollsRef.push();
+    await newPollRef.set({
         ...pollData,
         createdAt: Date.now(),
         votes: {
@@ -311,15 +292,15 @@ async function createPollInFirebase(pollData) {
 
 // Получение данных голосования
 async function getPollData(pollId) {
-    const pollRef = ref(database, `polls/${pollId}`);
-    const snapshot = await get(pollRef);
+    const pollRef = window.database.ref(`polls/${pollId}`);
+    const snapshot = await pollRef.get();
     return snapshot.val();
 }
 
 // Обновление голоса
 async function updateVote(pollId, userId, userName, voteType) {
-    const pollRef = ref(database, `polls/${pollId}/votes/${voteType}/${userId}`);
-    await set(pollRef, {
+    const voteRef = window.database.ref(`polls/${pollId}/votes/${voteType}/${userId}`);
+    await voteRef.set({
         name: userName,
         timestamp: Date.now()
     });
@@ -387,8 +368,8 @@ function createPollKeyboard(pollId) {
 }
 
 // ===== ОТПРАВКА ГОЛОСОВАНИЯ =====
-window.sendPoll = async function() {
-    console.log('sendPoll');
+window.sendNativePoll = async function() {
+    console.log('sendNativePoll');
     const question = document.getElementById('pollQuestion').value.trim();
     if (!question) {
         showStatus('введите вопрос', 'error');
@@ -633,21 +614,12 @@ window.sendConfirmationPoll = async function() {
         return;
     }
     
-    // Создаем голосование для подтверждения
-    const pollId = await createPollInFirebase({
-        question: "Подтверждение прочтения",
-        groupId: groupId,
-        createdBy: 'admin',
-        status: 'active',
-        type: 'confirmation'
-    });
-    
     const text = `⚠️ ВАЖНОЕ ОБЪЯВЛЕНИЕ\n\n${message}\n\nНажмите "Прочитано" чтобы отметить себя:`;
     
     const keyboard = {
         inline_keyboard: [
             [
-                { text: "✅ Прочитано", callback_data: `confirm_${pollId}` }
+                { text: "✅ Прочитано", callback_data: "confirm_read" }
             ]
         ]
     };
@@ -885,200 +857,3 @@ function updateSessionTime() {
         }
     }, 1000);
 }
-
-// ===== ВЕБХУК ДЛЯ TELEGRAM (нужно развернуть на Firebase Functions) =====
-// Этот код должен быть в отдельном файле для Firebase Cloud Functions
-/*
-const functions = require('firebase-functions');
-const admin = require('firebase-admin');
-const axios = require('axios');
-
-admin.initializeApp();
-const db = admin.database();
-
-const BOT_TOKEN = '8526725790:AAEu_vqnQ0hcn4gJUstOb2-bTCO7kIalQ7U';
-const TELEGRAM_API = `https://api.telegram.org/bot${BOT_TOKEN}`;
-
-exports.telegramWebhook = functions.https.onRequest(async (req, res) => {
-    try {
-        const { callback_query } = req.body;
-        
-        if (callback_query) {
-            const { data, from, message, id } = callback_query;
-            const userId = from.id;
-            const userName = from.username ? `@${from.username}` : from.first_name;
-            
-            // Обработка голосования
-            if (data.startsWith('vote_')) {
-                const [_, voteType, pollId] = data.split('_');
-                
-                // Обновляем голос в Firebase
-                const pollRef = db.ref(`polls/${pollId}/votes/${voteType}/${userId}`);
-                await pollRef.set({
-                    name: userName,
-                    timestamp: Date.now()
-                });
-                
-                // Получаем обновленные данные
-                const pollSnapshot = await db.ref(`polls/${pollId}`).once('value');
-                const pollData = pollSnapshot.val();
-                
-                // Форматируем результаты
-                const votes = pollData.votes || { yes: {}, maybe: {}, no: {} };
-                const yesCount = Object.keys(votes.yes || {}).length;
-                const maybeCount = Object.keys(votes.maybe || {}).length;
-                const noCount = Object.keys(votes.no || {}).length;
-                const total = yesCount + maybeCount + noCount;
-                
-                let resultText = `👥 ГОЛОСОВАНИЕ\n\n${pollData.question}\n\n`;
-                
-                if (yesCount > 0) {
-                    resultText += `✅ Пойдут (${yesCount}):\n`;
-                    Object.values(votes.yes).forEach(voter => {
-                        resultText += `${voter.name}\n`;
-                    });
-                    resultText += '\n';
-                }
-                
-                if (maybeCount > 0) {
-                    resultText += `🤔 Не уверены (${maybeCount}):\n`;
-                    Object.values(votes.maybe).forEach(voter => {
-                        resultText += `${voter.name}\n`;
-                    });
-                    resultText += '\n';
-                }
-                
-                if (noCount > 0) {
-                    resultText += `❌ Не пойдут (${noCount}):\n`;
-                    Object.values(votes.no).forEach(voter => {
-                        resultText += `${voter.name}\n`;
-                    });
-                    resultText += '\n';
-                }
-                
-                resultText += `Всего проголосовало: ${total}`;
-                
-                // Обновляем сообщение
-                const keyboard = {
-                    inline_keyboard: [
-                        [
-                            { text: "✅ Пойду", callback_data: `vote_yes_${pollId}` },
-                            { text: "🤔 Не уверен", callback_data: `vote_maybe_${pollId}` },
-                            { text: "❌ Не пойду", callback_data: `vote_no_${pollId}` }
-                        ],
-                        [
-                            { text: "🔄 Обновить", callback_data: `refresh_${pollId}` }
-                        ]
-                    ]
-                };
-                
-                await axios.post(`${TELEGRAM_API}/editMessageText`, {
-                    chat_id: message.chat.id,
-                    message_id: message.message_id,
-                    text: resultText,
-                    reply_markup: keyboard,
-                    parse_mode: 'HTML'
-                });
-                
-                // Отвечаем на callback
-                await axios.post(`${TELEGRAM_API}/answerCallbackQuery`, {
-                    callback_query_id: id,
-                    text: '✓ Ваш голос учтен!',
-                    show_alert: false
-                });
-            }
-            
-            // Обработка обновления
-            else if (data.startsWith('refresh_')) {
-                const pollId = data.replace('refresh_', '');
-                
-                const pollSnapshot = await db.ref(`polls/${pollId}`).once('value');
-                const pollData = pollSnapshot.val();
-                
-                const votes = pollData.votes || { yes: {}, maybe: {}, no: {} };
-                const yesCount = Object.keys(votes.yes || {}).length;
-                const maybeCount = Object.keys(votes.maybe || {}).length;
-                const noCount = Object.keys(votes.no || {}).length;
-                const total = yesCount + maybeCount + noCount;
-                
-                let resultText = `👥 ГОЛОСОВАНИЕ\n\n${pollData.question}\n\n`;
-                
-                if (yesCount > 0) {
-                    resultText += `✅ Пойдут (${yesCount}):\n`;
-                    Object.values(votes.yes).forEach(voter => {
-                        resultText += `${voter.name}\n`;
-                    });
-                    resultText += '\n';
-                }
-                
-                if (maybeCount > 0) {
-                    resultText += `🤔 Не уверены (${maybeCount}):\n`;
-                    Object.values(votes.maybe).forEach(voter => {
-                        resultText += `${voter.name}\n`;
-                    });
-                    resultText += '\n';
-                }
-                
-                if (noCount > 0) {
-                    resultText += `❌ Не пойдут (${noCount}):\n`;
-                    Object.values(votes.no).forEach(voter => {
-                        resultText += `${voter.name}\n`;
-                    });
-                    resultText += '\n';
-                }
-                
-                resultText += `Всего проголосовало: ${total}`;
-                
-                const keyboard = {
-                    inline_keyboard: [
-                        [
-                            { text: "✅ Пойду", callback_data: `vote_yes_${pollId}` },
-                            { text: "🤔 Не уверен", callback_data: `vote_maybe_${pollId}` },
-                            { text: "❌ Не пойду", callback_data: `vote_no_${pollId}` }
-                        ],
-                        [
-                            { text: "🔄 Обновить", callback_data: `refresh_${pollId}` }
-                        ]
-                    ]
-                };
-                
-                await axios.post(`${TELEGRAM_API}/editMessageText`, {
-                    chat_id: message.chat.id,
-                    message_id: message.message_id,
-                    text: resultText,
-                    reply_markup: keyboard,
-                    parse_mode: 'HTML'
-                });
-                
-                await axios.post(`${TELEGRAM_API}/answerCallbackQuery`, {
-                    callback_query_id: id,
-                    text: '✓ Статистика обновлена',
-                    show_alert: false
-                });
-            }
-            
-            // Обработка подтверждения
-            else if (data.startsWith('confirm_')) {
-                const pollId = data.replace('confirm_', '');
-                
-                const pollRef = db.ref(`polls/${pollId}/votes/yes/${userId}`);
-                await pollRef.set({
-                    name: userName,
-                    timestamp: Date.now()
-                });
-                
-                await axios.post(`${TELEGRAM_API}/answerCallbackQuery`, {
-                    callback_query_id: id,
-                    text: '✓ Подтверждено!',
-                    show_alert: false
-                });
-            }
-        }
-        
-        res.sendStatus(200);
-    } catch (error) {
-        console.error('Webhook error:', error);
-        res.sendStatus(500);
-    }
-});
-*/
