@@ -16,9 +16,6 @@ const TEMPLATES = {
     activity: (link = '[ссылка]') => 
         `🔥 РЕБЯТА, ПОАКТИВНИЧАЙТЕ!\n\nНам очень важна ваша поддержка под этим постом:\n${link}\n\nЖду реакции и комментарии! 🙏`,
 
-    quickPoll: () => 
-        `📊 КТО ИДЕТ?\n\nГолосуйте кнопками ниже! 👇`,
-
     deadlineSimple: (task = 'задание', date = 'завтра') => 
         `⏰ НАПОМИНАНИЕ\n\n${task} нужно сдать до ${date}.\n\nНе откладывайте!`,
 
@@ -66,7 +63,6 @@ function setupEventListeners() {
         });
     }
     
-    // Закрытие модалок по клику вне
     window.onclick = (event) => {
         const modals = ['eventModal', 'pollModal', 'linkModal', 'projectModal', 
                        'taskModal', 'simpleTaskModal', 'holidayModal', 
@@ -90,76 +86,70 @@ function closeModal(modalId) {
     document.getElementById(modalId).classList.remove('show');
 }
 
-// ===== ОТКРЫТИЕ РАЗНЫХ МОДАЛОК =====
-window.openPollModal = function() {
-    openModal('pollModal');
+// ===== ОТКРЫТИЕ МОДАЛОК =====
+window.openPollModal = function() { 
+    openModal('pollModal'); 
 };
 
-window.openEventModal = function() {
-    openModal('eventModal');
+window.openEventModal = function() { 
+    openModal('eventModal'); 
 };
 
-window.openLinkModal = function(type) {
-    currentTemplateType = type;
-    openModal('linkModal');
+window.openLinkModal = function(type) { 
+    currentTemplateType = type; 
+    openModal('linkModal'); 
 };
 
-window.openProjectModal = function(type) {
-    currentTemplateType = type;
-    openModal('projectModal');
+window.openProjectModal = function(type) { 
+    currentTemplateType = type; 
+    openModal('projectModal'); 
 };
 
-window.openTaskModal = function() {
-    openModal('taskModal');
+window.openTaskModal = function() { 
+    openModal('taskModal'); 
 };
 
-window.openSimpleTaskModal = function() {
-    openModal('simpleTaskModal');
+window.openSimpleTaskModal = function() { 
+    openModal('simpleTaskModal'); 
 };
 
-window.openHolidayModal = function() {
-    openModal('holidayModal');
+window.openHolidayModal = function() { 
+    openModal('holidayModal'); 
 };
 
-window.openBirthdayModal = function() {
-    openModal('birthdayModal');
+window.openBirthdayModal = function() { 
+    openModal('birthdayModal'); 
 };
 
-window.openReportModal = function() {
-    openModal('reportModal');
+window.openReportModal = function() { 
+    openModal('reportModal'); 
 };
 
-window.openUrgentModal = function() {
-    openModal('urgentModal');
+window.openUrgentModal = function() { 
+    openModal('urgentModal'); 
 };
 
 // ===== ОБРАБОТЧИКИ МОДАЛОК =====
 window.submitLink = function() {
     const link = document.getElementById('linkInput').value.trim();
-    if (!link) {
-        showStatus('введите ссылку', 'error');
-        return;
+    if (!link) { 
+        showStatus('введите ссылку', 'error'); 
+        return; 
     }
-    
-    const textarea = document.getElementById('messageText');
-    textarea.value = TEMPLATES.activity(link);
+    document.getElementById('messageText').value = TEMPLATES.activity(link);
     closeModal('linkModal');
     document.getElementById('linkInput').value = '';
     showStatus('✓ шаблон вставлен', 'success');
-    
-    textarea.style.borderColor = '#6c8cff';
-    setTimeout(() => textarea.style.borderColor = '', 300);
 };
 
 window.submitProject = function() {
     const project = document.getElementById('projectInput').value.trim();
-    
     const textarea = document.getElementById('messageText');
     
     if (currentTemplateType === 'links') {
-        if (!project) {
-            showStatus('введите название проекта', 'error');
-            return;
+        if (!project) { 
+            showStatus('введите название проекта', 'error'); 
+            return; 
         }
         textarea.value = `🔗 СБОР ССЫЛОК\n\nСкидывайте ссылки на работы по ${project}.\n\nФормат: Фамилия - ссылка`;
     } else if (currentTemplateType === 'links_simple') {
@@ -169,110 +159,69 @@ window.submitProject = function() {
     closeModal('projectModal');
     document.getElementById('projectInput').value = '';
     showStatus('✓ шаблон вставлен', 'success');
-    
-    textarea.style.borderColor = '#6c8cff';
-    setTimeout(() => textarea.style.borderColor = '', 300);
 };
 
 window.submitTask = function() {
     const task = document.getElementById('taskInput').value.trim();
     const date = document.getElementById('dateInput').value.trim();
-    
-    if (!task || !date) {
-        showStatus('заполните все поля', 'error');
-        return;
+    if (!task || !date) { 
+        showStatus('заполните все поля', 'error'); 
+        return; 
     }
-    
-    const textarea = document.getElementById('messageText');
-    textarea.value = `⏰ НАПОМИНАНИЕ\n\n${task} нужно сдать до ${date}.\n\nПодтвердите, что приняли информацию:`;
-    
+    document.getElementById('messageText').value = `⏰ НАПОМИНАНИЕ\n\n${task} нужно сдать до ${date}.\n\nПодтвердите, что приняли информацию:`;
     closeModal('taskModal');
     document.getElementById('taskInput').value = '';
     document.getElementById('dateInput').value = '';
     showStatus('✓ шаблон вставлен', 'success');
-    
-    textarea.style.borderColor = '#6c8cff';
-    setTimeout(() => textarea.style.borderColor = '', 300);
 };
 
 window.submitSimpleTask = function() {
     const task = document.getElementById('simpleTaskInput').value.trim();
     const date = document.getElementById('simpleDateInput').value.trim();
-    
-    const textarea = document.getElementById('messageText');
-    textarea.value = TEMPLATES.deadlineSimple(task || 'задание', date || 'завтра');
-    
+    document.getElementById('messageText').value = TEMPLATES.deadlineSimple(task || 'задание', date || 'завтра');
     closeModal('simpleTaskModal');
     document.getElementById('simpleTaskInput').value = '';
     document.getElementById('simpleDateInput').value = '';
     showStatus('✓ шаблон вставлен', 'success');
-    
-    textarea.style.borderColor = '#6c8cff';
-    setTimeout(() => textarea.style.borderColor = '', 300);
 };
 
 window.submitHoliday = function() {
     const holiday = document.getElementById('holidayInput').value.trim();
-    
-    const textarea = document.getElementById('messageText');
-    textarea.value = TEMPLATES.congrats(holiday || 'праздником');
-    
+    document.getElementById('messageText').value = TEMPLATES.congrats(holiday || 'праздником');
     closeModal('holidayModal');
     document.getElementById('holidayInput').value = '';
     showStatus('✓ шаблон вставлен', 'success');
-    
-    textarea.style.borderColor = '#6c8cff';
-    setTimeout(() => textarea.style.borderColor = '', 300);
 };
 
 window.submitBirthday = function() {
     const name = document.getElementById('nameInput').value.trim();
-    
-    const textarea = document.getElementById('messageText');
-    textarea.value = TEMPLATES.birthday(name || 'Друг');
-    
+    document.getElementById('messageText').value = TEMPLATES.birthday(name || 'Друг');
     closeModal('birthdayModal');
     document.getElementById('nameInput').value = '';
     showStatus('✓ шаблон вставлен', 'success');
-    
-    textarea.style.borderColor = '#6c8cff';
-    setTimeout(() => textarea.style.borderColor = '', 300);
 };
 
 window.submitReport = function() {
     const event = document.getElementById('eventReportInput').value.trim();
-    
-    const textarea = document.getElementById('messageText');
-    textarea.value = TEMPLATES.report(event || 'мероприятия');
-    
+    document.getElementById('messageText').value = TEMPLATES.report(event || 'мероприятия');
     closeModal('reportModal');
     document.getElementById('eventReportInput').value = '';
     showStatus('✓ шаблон вставлен', 'success');
-    
-    textarea.style.borderColor = '#6c8cff';
-    setTimeout(() => textarea.style.borderColor = '', 300);
 };
 
 window.submitUrgent = function() {
     const text = document.getElementById('urgentText').value.trim();
-    
-    if (!text) {
-        showStatus('введите текст', 'error');
-        return;
+    if (!text) { 
+        showStatus('введите текст', 'error'); 
+        return; 
     }
-    
-    const textarea = document.getElementById('messageText');
-    textarea.value = TEMPLATES.urgent(text);
-    
+    document.getElementById('messageText').value = TEMPLATES.urgent(text);
     closeModal('urgentModal');
     document.getElementById('urgentText').value = '';
     showStatus('✓ шаблон вставлен', 'success');
-    
-    textarea.style.borderColor = '#6c8cff';
-    setTimeout(() => textarea.style.borderColor = '', 300);
 };
 
-// ===== ОТПРАВКА МЕРОПРИЯТИЯ (ОДНО СООБЩЕНИЕ С КНОПКАМИ) =====
+// ===== ОТПРАВКА МЕРОПРИЯТИЯ С ОПРОСОМ (РОДНОЙ ОПРОС) =====
 window.sendEventPoll = async function() {
     console.log('sendEventPoll');
     
@@ -294,39 +243,36 @@ window.sendEventPoll = async function() {
         return;
     }
     
-    // Формируем ОДНО сообщение с мероприятием
-    const message = 
+    // Сначала отправляем информацию о мероприятии
+    const infoMessage = 
         `🎪 МЕРОПРИЯТИЕ: ${name}\n\n` +
         `📅 Дата: ${date}\n` +
         `⏰ Время: ${time}\n` +
         `📍 Место: ${place || 'не указано'}\n\n` +
         `👔 Дресс-код: ${dresscode || 'любой'}\n` +
-        `🎒 С собой: ${bring || 'ничего'}\n\n` +
-        `👇 Кто идет? Нажмите на кнопку:`;
+        `🎒 С собой: ${bring || 'ничего'}`;
     
-    // Создаем инлайн-кнопки
-    const keyboard = {
-        inline_keyboard: [
-            [
-                { text: "✅ Пойду", callback_data: "event_yes" },
-                { text: "🤔 Не уверен", callback_data: "event_maybe" },
-                { text: "❌ Не пойду", callback_data: "event_no" }
-            ],
-            [
-                { text: "📊 Посмотреть кто идет", callback_data: "event_stats" }
-            ]
-        ]
-    };
+    await fetch(`${CONFIG.API_URL}${CONFIG.BOT_TOKEN}/sendMessage`, {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({
+            chat_id: groupId,
+            text: infoMessage,
+            parse_mode: 'HTML'
+        })
+    });
     
+    // Потом отправляем родной опрос Telegram
     try {
-        const response = await fetch(`${CONFIG.API_URL}${CONFIG.BOT_TOKEN}/sendMessage`, {
+        const response = await fetch(`${CONFIG.API_URL}${CONFIG.BOT_TOKEN}/sendPoll`, {
             method: 'POST',
             headers: {'Content-Type': 'application/json'},
             body: JSON.stringify({
                 chat_id: groupId,
-                text: message,
-                reply_markup: keyboard,
-                parse_mode: 'HTML'
+                question: "Кто идет?",
+                options: ["✅ Пойду", "🤔 Не уверен", "❌ Не пойду"],
+                is_anonymous: false, // Показывать кто голосовал
+                allows_multiple_answers: false
             })
         });
         
@@ -335,11 +281,10 @@ window.sendEventPoll = async function() {
         if (data.ok) {
             messagesCount++;
             document.getElementById('messagesCount').textContent = messagesCount;
-            showStatus('✓ мероприятие отправлено', 'success');
+            showStatus('✓ мероприятие + опрос отправлены', 'success');
             addToHistory(`мероприятие: ${name}`, 'success');
             closeModal('eventModal');
             
-            // Очищаем поля
             document.getElementById('eventName').value = '';
             document.getElementById('eventDate').value = '';
             document.getElementById('eventTime').value = '';
@@ -354,7 +299,7 @@ window.sendEventPoll = async function() {
     }
 };
 
-// ===== ОТПРАВКА ГОЛОСОВАНИЯ =====
+// ===== ОТПРАВКА РОДНОГО ОПРОСА =====
 window.sendNativePoll = async function() {
     console.log('sendNativePoll');
     const question = document.getElementById('pollQuestion').value.trim();
@@ -369,27 +314,16 @@ window.sendNativePoll = async function() {
         return;
     }
     
-    const message = `📊 ГОЛОСОВАНИЕ\n\n${question}\n\nНажмите на кнопку ниже:`;
-    
-    const keyboard = {
-        inline_keyboard: [
-            [
-                { text: "✅ Пойду", callback_data: "vote_yes" },
-                { text: "🤔 Не уверен", callback_data: "vote_maybe" },
-                { text: "❌ Не пойду", callback_data: "vote_no" }
-            ]
-        ]
-    };
-    
     try {
-        const response = await fetch(`${CONFIG.API_URL}${CONFIG.BOT_TOKEN}/sendMessage`, {
+        const response = await fetch(`${CONFIG.API_URL}${CONFIG.BOT_TOKEN}/sendPoll`, {
             method: 'POST',
             headers: {'Content-Type': 'application/json'},
             body: JSON.stringify({
                 chat_id: groupId,
-                text: message,
-                reply_markup: keyboard,
-                parse_mode: 'HTML'
+                question: question,
+                options: ["✅ Пойду", "🤔 Не уверен", "❌ Не пойду"],
+                is_anonymous: false,
+                allows_multiple_answers: false
             })
         });
         
@@ -398,8 +332,8 @@ window.sendNativePoll = async function() {
         if (data.ok) {
             messagesCount++;
             document.getElementById('messagesCount').textContent = messagesCount;
-            showStatus('✓ голосование создано', 'success');
-            addToHistory('голосование', 'success');
+            showStatus('✓ опрос создан', 'success');
+            addToHistory('опрос', 'success');
             closeModal('pollModal');
             document.getElementById('pollQuestion').value = '';
         } else {
@@ -419,27 +353,15 @@ window.sendQuickPoll = async function() {
         return;
     }
     
-    const message = `📊 КТО ИДЕТ?\n\nНажмите на кнопку ниже:`;
-    
-    const keyboard = {
-        inline_keyboard: [
-            [
-                { text: "✅ Пойду", callback_data: "quick_yes" },
-                { text: "🤔 Не уверен", callback_data: "quick_maybe" },
-                { text: "❌ Не пойду", callback_data: "quick_no" }
-            ]
-        ]
-    };
-    
     try {
-        const response = await fetch(`${CONFIG.API_URL}${CONFIG.BOT_TOKEN}/sendMessage`, {
+        const response = await fetch(`${CONFIG.API_URL}${CONFIG.BOT_TOKEN}/sendPoll`, {
             method: 'POST',
             headers: {'Content-Type': 'application/json'},
             body: JSON.stringify({
                 chat_id: groupId,
-                text: message,
-                reply_markup: keyboard,
-                parse_mode: 'HTML'
+                question: "Кто идет на мероприятие?",
+                options: ["✅ Пойду", "🤔 Не уверен", "❌ Не пойду"],
+                is_anonymous: false
             })
         });
         
@@ -450,59 +372,6 @@ window.sendQuickPoll = async function() {
             document.getElementById('messagesCount').textContent = messagesCount;
             showStatus('✓ опрос создан', 'success');
             addToHistory('быстрый опрос', 'success');
-        } else {
-            showStatus(`✗ ошибка: ${data.description}`, 'error');
-        }
-    } catch (error) {
-        showStatus(`✗ ошибка: ${error.message}`, 'error');
-    }
-};
-
-// ===== ВАЖНОЕ С ПОДТВЕРЖДЕНИЕМ =====
-window.sendConfirmationPoll = async function() {
-    console.log('sendConfirmationPoll');
-    const message = document.getElementById('messageText').value.trim();
-    if (!message) {
-        showStatus('введите текст объявления', 'error');
-        return;
-    }
-    
-    const groupId = getSelectedGroup();
-    if (!groupId) {
-        showStatus('выберите группу', 'error');
-        return;
-    }
-    
-    const text = `⚠️ ВАЖНОЕ ОБЪЯВЛЕНИЕ\n\n${message}\n\nНажмите "Прочитано" чтобы отметить себя:`;
-    
-    const keyboard = {
-        inline_keyboard: [
-            [
-                { text: "✅ Прочитано", callback_data: "confirm_read" }
-            ]
-        ]
-    };
-    
-    try {
-        const response = await fetch(`${CONFIG.API_URL}${CONFIG.BOT_TOKEN}/sendMessage`, {
-            method: 'POST',
-            headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify({
-                chat_id: groupId,
-                text: text,
-                reply_markup: keyboard,
-                parse_mode: 'HTML'
-            })
-        });
-        
-        const data = await response.json();
-        
-        if (data.ok) {
-            messagesCount++;
-            document.getElementById('messagesCount').textContent = messagesCount;
-            showStatus('✓ объявление отправлено', 'success');
-            addToHistory('важное объявление', 'success');
-            document.getElementById('messageText').value = '';
         } else {
             showStatus(`✗ ошибка: ${data.description}`, 'error');
         }
@@ -601,50 +470,32 @@ window.sendMessage = async function() {
     }
 };
 
-// ===== ТЕСТ (БЕЗ ОТПРАВКИ) =====
+// ===== ТЕСТ =====
 window.sendTestMessage = function() {
-    console.log('sendTestMessage');
     const message = document.getElementById('messageText').value.trim();
-    if (!message) {
-        showStatus('нет сообщения', 'error');
-        return;
+    if (!message) { 
+        showStatus('нет сообщения', 'error'); 
+        return; 
     }
-    showStatus('🔬 тест режим (сообщение не отправлено)', 'info');
+    showStatus('🔬 тест режим', 'info');
     addToHistory(`[тест] ${message}`, 'info');
 };
 
-// ===== КОПИРОВАТЬ В БУФЕР =====
+// ===== КОПИРОВАТЬ =====
 window.copyToClipboard = function() {
-    console.log('copyToClipboard');
     const message = document.getElementById('messageText').value.trim();
-    if (!message) {
-        showStatus('нечего копировать', 'error');
-        return;
+    if (!message) { 
+        showStatus('нечего копировать', 'error'); 
+        return; 
     }
-    
-    navigator.clipboard.writeText(message).then(() => {
-        showStatus('✓ скопировано', 'success');
-    }).catch(() => {
-        showStatus('✗ ошибка копирования', 'error');
-    });
+    navigator.clipboard.writeText(message).then(() => showStatus('✓ скопировано', 'success'));
 };
 
 // ===== ИСТОРИЯ =====
 function addToHistory(text, type = 'info') {
-    const time = new Date().toLocaleTimeString('ru-RU', { 
-        hour: '2-digit', 
-        minute: '2-digit',
-        second: '2-digit'
-    });
-    
-    messageHistory.unshift({
-        text: text.length > 40 ? text.substring(0, 40) + '…' : text,
-        time,
-        type
-    });
-    
+    const time = new Date().toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+    messageHistory.unshift({ text: text.length > 40 ? text.substring(0, 40) + '…' : text, time, type });
     if (messageHistory.length > 20) messageHistory.pop();
-    
     updateHistory();
     saveHistory();
 }
@@ -652,7 +503,6 @@ function addToHistory(text, type = 'info') {
 function updateHistory() {
     const list = document.getElementById('historyList');
     const count = document.getElementById('historyCount');
-    
     if (!list) return;
     
     if (messageHistory.length === 0) {
@@ -665,48 +515,39 @@ function updateHistory() {
     
     let html = '';
     messageHistory.forEach(item => {
-        html += `
-            <div class="history-item">
-                <span>${item.text}</span>
-                <span class="history-item-time">${item.time}</span>
-            </div>
-        `;
+        html += `<div class="history-item"><span>${item.text}</span><span class="history-item-time">${item.time}</span></div>`;
     });
-    
     list.innerHTML = html;
 }
 
-function saveHistory() {
-    localStorage.setItem('edubot_history', JSON.stringify(messageHistory));
+function saveHistory() { 
+    localStorage.setItem('edubot_history', JSON.stringify(messageHistory)); 
 }
 
 function loadHistory() {
     const saved = localStorage.getItem('edubot_history');
-    if (saved) {
-        try {
-            messageHistory = JSON.parse(saved);
-            updateHistory();
-        } catch (e) {}
+    if (saved) { 
+        try { 
+            messageHistory = JSON.parse(saved); 
+            updateHistory(); 
+        } catch (e) {} 
     }
 }
 
 window.clearHistory = function() {
-    console.log('clearHistory');
-    if (confirm('Очистить историю?')) {
-        messageHistory = [];
-        updateHistory();
-        saveHistory();
-        showStatus('✓ история очищена', 'info');
+    if (confirm('Очистить историю?')) { 
+        messageHistory = []; 
+        updateHistory(); 
+        saveHistory(); 
+        showStatus('✓ история очищена', 'info'); 
     }
 };
 
 window.exportHistory = function() {
-    console.log('exportHistory');
-    if (messageHistory.length === 0) {
-        showStatus('история пуста', 'error');
-        return;
+    if (messageHistory.length === 0) { 
+        showStatus('история пуста', 'error'); 
+        return; 
     }
-    
     const data = JSON.stringify(messageHistory, null, 2);
     const blob = new Blob([data], {type: 'application/json'});
     const url = URL.createObjectURL(blob);
@@ -720,7 +561,6 @@ window.exportHistory = function() {
 
 // ===== РЕДАКТОР =====
 window.clearEditor = function() {
-    console.log('clearEditor');
     document.getElementById('messageText').value = '';
     showStatus('✓ редактор очищен', 'info');
 };
@@ -735,9 +575,7 @@ function showStatus(message, type = 'info', keep = false) {
     status.classList.remove('hidden');
     
     if (!keep) {
-        setTimeout(() => {
-            status.classList.add('hidden');
-        }, 2000);
+        setTimeout(() => status.classList.add('hidden'), 2000);
     }
 }
 
