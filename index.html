@@ -99,7 +99,7 @@
                         </div>
                     </div>
 
-                    <!-- Голосование (опрос Telegram) -->
+                    <!-- Голосование -->
                     <div class="template-card" onclick="openPollModal()">
                         <div class="template-gradient" style="background: linear-gradient(145deg, #a64dff20, #c45eff20)"></div>
                         <div class="template-content">
@@ -108,7 +108,7 @@
                             </div>
                             <div class="template-info">
                                 <h3>Голосование</h3>
-                                <p>Создать опрос с вариантами</p>
+                                <p>Создать опрос с кнопками</p>
                             </div>
                             <i class="fas fa-chevron-right template-arrow"></i>
                         </div>
@@ -122,8 +122,8 @@
                                 <i class="fas fa-calendar-check"></i>
                             </div>
                             <div class="template-info">
-                                <h3>Мероприятие + опрос</h3>
-                                <p>Кто идет? С подсчетом голосов</p>
+                                <h3>Мероприятие + голосование</h3>
+                                <p>Кто идет? С подсчетом участников</p>
                             </div>
                             <i class="fas fa-chevron-right template-arrow"></i>
                         </div>
@@ -167,7 +167,7 @@
                         </div>
                     </div>
 
-                    <!-- Сбор ссылок -->
+                    <!-- Сбор ссылок с кнопкой -->
                     <div class="template-card" onclick="openProjectModal('links')">
                         <div class="template-gradient" style="background: linear-gradient(145deg, #4dffb820, #4dff8820)"></div>
                         <div class="template-content">
@@ -214,7 +214,7 @@
                             </div>
                             <div class="template-info">
                                 <h3>Важное объявление</h3>
-                                <p>С кнопкой подтверждения</p>
+                                <p>С подтверждением прочтения</p>
                             </div>
                             <i class="fas fa-chevron-right template-arrow"></i>
                         </div>
@@ -501,7 +501,7 @@
     <div id="pollModal" class="modal-overlay">
         <div class="modal-window ultra-glass">
             <div class="modal-header">
-                <h3>новый опрос</h3>
+                <h3>новое голосование</h3>
                 <button class="glass-button close" onclick="closeModal('pollModal')">
                     <i class="fas fa-times"></i>
                 </button>
@@ -512,14 +512,11 @@
                     <label>вопрос</label>
                     <input type="text" id="pollQuestion" class="glass-input" placeholder="Кто идет на мероприятие?">
                 </div>
-                <div class="input-group" style="margin-top: 15px;">
-                    <small style="opacity: 0.6;">Варианты: ✅ Пойду | 🤔 Не уверен | ❌ Не пойду</small>
-                </div>
             </div>
             
             <div class="modal-footer">
                 <button class="glass-button" onclick="closeModal('pollModal')">отмена</button>
-                <button class="glass-button primary" onclick="sendNativePoll()">создать опрос</button>
+                <button class="glass-button primary" onclick="sendPoll()">создать</button>
             </div>
         </div>
     </div>
@@ -732,13 +729,27 @@
         </div>
         <div class="footer-info">
             <i class="fas fa-github"></i>
-            <span>github pages • v3.0 родные опросы</span>
+            <span>github pages • v3.0 полный функционал</span>
         </div>
         <div class="footer-info">
             <i class="fas fa-robot"></i>
             <span id="botTokenDisplay">токен: 8526725790:AAE...</span>
         </div>
     </div>
+
+    <!-- Импорт Firebase -->
+    <script type="import">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getDatabase, ref, set, push, onValue, update, get } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+        window.initializeApp = initializeApp;
+        window.getDatabase = getDatabase;
+        window.ref = ref;
+        window.set = set;
+        window.push = push;
+        window.onValue = onValue;
+        window.update = update;
+        window.get = get;
+    </script>
 
     <script src="script.js"></script>
 </body>
