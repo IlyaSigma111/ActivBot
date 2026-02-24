@@ -1,7 +1,6 @@
 // ===== КОНФИГУРАЦИЯ БОТА =====
 const CONFIG = {
     BOT_TOKEN: '8526725790:AAEu_vqnQ0hcn4gJUstOb2-bTCO7kIalQ7U',
-    CHAT_ID: '-1004695039051',  // ID супергруппы
     API_URL: 'https://api.telegram.org/bot'
 };
 
@@ -10,6 +9,8 @@ let messageHistory = [];
 let sessionStartTime = new Date();
 let messagesCount = 0;
 let currentTemplateType = '';
+let CHAT_ID = null;
+let foundGroups = [];
 
 // ===== ШАБЛОНЫ =====
 const TEMPLATES = {
@@ -48,8 +49,8 @@ document.addEventListener('DOMContentLoaded', () => {
         tokenDisplay.textContent = `токен: ${CONFIG.BOT_TOKEN.substring(0, 10)}...`;
     }
     
-    // Проверяем доступ к API
-    checkBotStatus();
+    // Начинаем поиск группы
+    findGroup();
 });
 
 function setupEventListeners() {
@@ -162,22 +163,66 @@ window.submitUrgent = function() {
     showStatus('✓ шаблон вставлен', 'success');
 };
 
-// ===== ПРОВЕРКА СТАТУСА БОТА =====
-async function checkBotStatus() {
+// ===== ПОИСК ГРУППЫ =====
+async function findGroup() {
+    showStatus('🔍 Поиск группы... Напишите что-нибудь в чат', 'info', true);
+    
     try {
-        const response = await fetch(`${CONFIG.API_URL}${CONFIG.BOT_TOKEN}/getMe`);
+        // Сначала удаляем вебхук если есть
+        await fetch(`${CONFIG.API_URL}${CONFIG.BOT_TOKEN}/deleteWebhook`);
+        
+        // Получаем обновления
+        const response = await fetch(`${CONFIG.API_URL}${CONFIG.BOT_TOKEN}/getUpdates`);
         const data = await response.json();
-        if (data.ok) {
-            showStatus(`✓ Бот @${data.result.username} активен`, 'success');
-            console.log('Бот:', data.result);
+        
+        if (data.ok && data.result.length > 0) {
+            foundGroups = [];
+            
+            // Ищем все группы
+            data.result.forEach(update => {
+                if (update.message && update.message.chat) {
+                    const chat = update.message.chat;
+                    if (chat.type === 'group' || chat.type === 'supergroup') {
+                        foundGroups.push({
+                            id: chat.id,
+                            title: chat.title || 'Без названия',
+                            type: chat.type
+                        });
+                    }
+                }
+            });
+            
+            if (foundGroups.length > 0) {
+                // Берем последнюю найденную группу
+                CHAT_ID = foundGroups[foundGroups.length - 1].id;
+                const groupInfo = foundGroups[foundGroups.length - 1];
+                
+                showStatus(`✓ Найдена группа: ${groupInfo.title} (ID: ${CHAT_ID})`, 'success');
+                document.getElementById('activeGroupDisplay').innerHTML = 
+                    `<i class="fas fa-check-circle"></i> ${groupInfo.title}`;
+                
+                console.log('Доступные группы:', foundGroups);
+            } else {
+                showStatus('✗ Группа не найдена. Напишите сообщение в группу', 'error');
+                setTimeout(findGroup, 5000);
+            }
+        } else {
+            showStatus('⏳ Ожидание сообщений в группе...', 'info', true);
+            setTimeout(findGroup, 3000);
         }
     } catch (error) {
-        showStatus('✗ Ошибка подключения к боту', 'error');
+        showStatus(`✗ Ошибка: ${error.message}`, 'error');
+        setTimeout(findGroup, 5000);
     }
 }
 
 // ===== УНИВЕРСАЛЬНАЯ ФУНКЦИЯ ОТПРАВКИ =====
 async function sendToTelegram(method, params) {
+    if (!CHAT_ID) {
+        showStatus('❌ Сначала дождитесь поиска группы', 'error');
+        return { ok: false };
+    }
+    
     const url = `${CONFIG.API_URL}${CONFIG.BOT_TOKEN}/${method}`;
     
     try {
@@ -186,7 +231,10 @@ async function sendToTelegram(method, params) {
             headers: {
                 'Content-Type': 'application/json',
             },
-            body: JSON.stringify(params)
+            body: JSON.stringify({
+                chat_id: CHAT_ID,
+                ...params
+            })
         });
         
         return await response.json();
@@ -221,20 +269,14 @@ window.sendEventPoll = async function() {
     
     showStatus('⏳ Отправка...', 'info', true);
     
-    // Отправляем текст
-    const textResult = await sendToTelegram('sendMessage', {
-        chat_id: CONFIG.CHAT_ID,
-        text: infoMessage
-    });
+    const textResult = await sendToTelegram('sendMessage', { text: infoMessage });
     
     if (!textResult.ok) {
         showStatus(`✗ Ошибка: ${textResult.description}`, 'error');
         return;
     }
     
-    // Отправляем опрос
     const pollResult = await sendToTelegram('sendPoll', {
-        chat_id: CONFIG.CHAT_ID,
         question: `Кто идет на "${name}"?`,
         options: ["✅ Пойду", "🤔 Не уверен", "❌ Не пойду"],
         is_anonymous: false
@@ -247,7 +289,6 @@ window.sendEventPoll = async function() {
         addToHistory(`мероприятие: ${name}`, 'success');
         closeModal('eventModal');
         
-        // Очищаем поля
         document.getElementById('eventName').value = '';
         document.getElementById('eventDate').value = '';
         document.getElementById('eventTime').value = '';
@@ -270,7 +311,6 @@ window.sendNativePoll = async function() {
     showStatus('⏳ Создание опроса...', 'info', true);
     
     const result = await sendToTelegram('sendPoll', {
-        chat_id: CONFIG.CHAT_ID,
         question: question,
         options: ["✅ Пойду", "🤔 Не уверен", "❌ Не пойду"],
         is_anonymous: false
@@ -293,7 +333,6 @@ window.sendQuickPoll = async function() {
     showStatus('⏳ Создание опроса...', 'info', true);
     
     const result = await sendToTelegram('sendPoll', {
-        chat_id: CONFIG.CHAT_ID,
         question: "Кто идет на мероприятие?",
         options: ["✅ Пойду", "🤔 Не уверен", "❌ Не пойду"],
         is_anonymous: false
@@ -356,10 +395,7 @@ window.sendMessage = async function() {
     
     showStatus('⏳ Отправка...', 'info', true);
     
-    const result = await sendToTelegram('sendMessage', {
-        chat_id: CONFIG.CHAT_ID,
-        text: message
-    });
+    const result = await sendToTelegram('sendMessage', { text: message });
     
     if (result.ok) {
         messagesCount++;
