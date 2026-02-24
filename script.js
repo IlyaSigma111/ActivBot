@@ -1,7 +1,7 @@
 // ===== КОНФИГУРАЦИЯ БОТА =====
 const CONFIG = {
     BOT_TOKEN: '8526725790:AAEu_vqnQ0hcn4gJUstOb2-bTCO7kIalQ7U',
-    TEST_GROUP: '-5169688120',
+    MAIN_GROUP: '-4695039051', // Основная группа
     API_URL: 'https://api.telegram.org/bot'
 };
 
@@ -46,6 +46,12 @@ document.addEventListener('DOMContentLoaded', () => {
     const tokenDisplay = document.getElementById('botTokenDisplay');
     if (tokenDisplay) {
         tokenDisplay.textContent = `токен: ${CONFIG.BOT_TOKEN.substring(0, 10)}...`;
+    }
+    
+    // Устанавливаем основную группу по умолчанию
+    const groupSelector = document.getElementById('groupSelector');
+    if (groupSelector) {
+        groupSelector.value = CONFIG.MAIN_GROUP;
     }
 });
 
