@@ -1,7 +1,7 @@
 // ===== КОНФИГУРАЦИЯ БОТА =====
 const CONFIG = {
     BOT_TOKEN: '8526725790:AAEu_vqnQ0hcn4gJUstOb2-bTCO7kIalQ7U',
-    MAIN_GROUP: '-4695039051', // Основная группа
+    MAIN_GROUP: '-4695039051',
     API_URL: 'https://api.telegram.org/bot'
 };
 
@@ -16,11 +16,11 @@ const TEMPLATES = {
     activity: (link = '[ссылка]') => 
         `🔥 РЕБЯТА, ПОАКТИВНИЧАЙТЕ!\n\nНам очень важна ваша поддержка под этим постом:\n${link}\n\nЖду реакции и комментарии! 🙏`,
 
-    deadlineSimple: (task = 'задание', date = 'завтра') => 
+    deadline: (task = 'задание', date = 'завтра') => 
         `⏰ НАПОМИНАНИЕ\n\n${task} нужно сдать до ${date}.\n\nНе откладывайте!`,
 
-    linksSimple: (project = 'проекта') => 
-        `🔗 СБОР ССЫЛОК\n\nСкидывайте в комментарии ссылки на работы по ${project}.\n\nФормат: Фамилия - ссылка`,
+    links: (project = 'проекта') => 
+        `🔗 СБОР ССЫЛОК\n\nСкидывайте ссылки на работы по ${project}.\n\nФормат: Фамилия - ссылка`,
 
     congrats: (holiday = 'праздником') => 
         `🎉 ПОЗДРАВЛЯЮ!\n\nС ${holiday}! Желаю успехов, вдохновения и отличного настроения! ✨`,
@@ -29,10 +29,10 @@ const TEMPLATES = {
         `⚠️ СРОЧНО!\n\n${message}\n\nПрошу всех ознакомиться!`,
 
     report: (event = 'мероприятия') => 
-        `📝 ОТЧЕТ О МЕРОПРИЯТИИ\n\nДелитесь впечатлениями о ${event} в комментариях!\n\nЧто понравилось? Что можно улучшить?`,
+        `📝 ОТЧЕТ\n\nДелитесь впечатлениями о ${event} в комментариях!`,
 
     birthday: (name = 'именинника') => 
-        `🎂 С ДНЕМ РОЖДЕНИЯ, ${name}!\n\nЖелаем счастья, здоровья, успехов в учебе и отличного настроения! 🎁🎈`
+        `🎂 С ДНЕМ РОЖДЕНИЯ, ${name}!\n\nЖелаем счастья, здоровья, успехов! 🎁🎈`
 };
 
 // ===== ИНИЦИАЛИЗАЦИЯ =====
@@ -47,32 +47,13 @@ document.addEventListener('DOMContentLoaded', () => {
     if (tokenDisplay) {
         tokenDisplay.textContent = `токен: ${CONFIG.BOT_TOKEN.substring(0, 10)}...`;
     }
-    
-    // Устанавливаем основную группу по умолчанию
-    const groupSelector = document.getElementById('groupSelector');
-    if (groupSelector) {
-        groupSelector.value = CONFIG.MAIN_GROUP;
-    }
 });
 
 function setupEventListeners() {
-    const groupSelector = document.getElementById('groupSelector');
-    const customInput = document.getElementById('customGroupInput');
-    
-    if (groupSelector) {
-        groupSelector.addEventListener('change', function() {
-            if (this.value === 'custom') {
-                customInput.classList.remove('hidden');
-            } else {
-                customInput.classList.add('hidden');
-            }
-        });
-    }
-    
     window.onclick = (event) => {
         const modals = ['eventModal', 'pollModal', 'linkModal', 'projectModal', 
-                       'taskModal', 'simpleTaskModal', 'holidayModal', 
-                       'birthdayModal', 'reportModal', 'urgentModal'];
+                       'taskModal', 'holidayModal', 'birthdayModal', 
+                       'reportModal', 'urgentModal'];
         
         modals.forEach(modalId => {
             const modal = document.getElementById(modalId);
@@ -93,55 +74,20 @@ function closeModal(modalId) {
 }
 
 // ===== ОТКРЫТИЕ МОДАЛОК =====
-window.openPollModal = function() { 
-    openModal('pollModal'); 
-};
-
-window.openEventModal = function() { 
-    openModal('eventModal'); 
-};
-
-window.openLinkModal = function(type) { 
-    currentTemplateType = type; 
-    openModal('linkModal'); 
-};
-
-window.openProjectModal = function(type) { 
-    currentTemplateType = type; 
-    openModal('projectModal'); 
-};
-
-window.openTaskModal = function() { 
-    openModal('taskModal'); 
-};
-
-window.openSimpleTaskModal = function() { 
-    openModal('simpleTaskModal'); 
-};
-
-window.openHolidayModal = function() { 
-    openModal('holidayModal'); 
-};
-
-window.openBirthdayModal = function() { 
-    openModal('birthdayModal'); 
-};
-
-window.openReportModal = function() { 
-    openModal('reportModal'); 
-};
-
-window.openUrgentModal = function() { 
-    openModal('urgentModal'); 
-};
+window.openPollModal = function() { openModal('pollModal'); };
+window.openEventModal = function() { openModal('eventModal'); };
+window.openLinkModal = function(type) { currentTemplateType = type; openModal('linkModal'); };
+window.openProjectModal = function(type) { currentTemplateType = type; openModal('projectModal'); };
+window.openTaskModal = function() { openModal('taskModal'); };
+window.openHolidayModal = function() { openModal('holidayModal'); };
+window.openBirthdayModal = function() { openModal('birthdayModal'); };
+window.openReportModal = function() { openModal('reportModal'); };
+window.openUrgentModal = function() { openModal('urgentModal'); };
 
 // ===== ОБРАБОТЧИКИ МОДАЛОК =====
 window.submitLink = function() {
     const link = document.getElementById('linkInput').value.trim();
-    if (!link) { 
-        showStatus('введите ссылку', 'error'); 
-        return; 
-    }
+    if (!link) { showStatus('введите ссылку', 'error'); return; }
     document.getElementById('messageText').value = TEMPLATES.activity(link);
     closeModal('linkModal');
     document.getElementById('linkInput').value = '';
@@ -150,18 +96,7 @@ window.submitLink = function() {
 
 window.submitProject = function() {
     const project = document.getElementById('projectInput').value.trim();
-    const textarea = document.getElementById('messageText');
-    
-    if (currentTemplateType === 'links') {
-        if (!project) { 
-            showStatus('введите название проекта', 'error'); 
-            return; 
-        }
-        textarea.value = `🔗 СБОР ССЫЛОК\n\nСкидывайте ссылки на работы по ${project}.\n\nФормат: Фамилия - ссылка`;
-    } else if (currentTemplateType === 'links_simple') {
-        textarea.value = TEMPLATES.linksSimple(project || 'проекта');
-    }
-    
+    document.getElementById('messageText').value = TEMPLATES.links(project || 'проекта');
     closeModal('projectModal');
     document.getElementById('projectInput').value = '';
     showStatus('✓ шаблон вставлен', 'success');
@@ -170,24 +105,11 @@ window.submitProject = function() {
 window.submitTask = function() {
     const task = document.getElementById('taskInput').value.trim();
     const date = document.getElementById('dateInput').value.trim();
-    if (!task || !date) { 
-        showStatus('заполните все поля', 'error'); 
-        return; 
-    }
-    document.getElementById('messageText').value = `⏰ НАПОМИНАНИЕ\n\n${task} нужно сдать до ${date}.\n\nПодтвердите, что приняли информацию:`;
+    if (!task || !date) { showStatus('заполните все поля', 'error'); return; }
+    document.getElementById('messageText').value = TEMPLATES.deadline(task, date);
     closeModal('taskModal');
     document.getElementById('taskInput').value = '';
     document.getElementById('dateInput').value = '';
-    showStatus('✓ шаблон вставлен', 'success');
-};
-
-window.submitSimpleTask = function() {
-    const task = document.getElementById('simpleTaskInput').value.trim();
-    const date = document.getElementById('simpleDateInput').value.trim();
-    document.getElementById('messageText').value = TEMPLATES.deadlineSimple(task || 'задание', date || 'завтра');
-    closeModal('simpleTaskModal');
-    document.getElementById('simpleTaskInput').value = '';
-    document.getElementById('simpleDateInput').value = '';
     showStatus('✓ шаблон вставлен', 'success');
 };
 
@@ -217,39 +139,32 @@ window.submitReport = function() {
 
 window.submitUrgent = function() {
     const text = document.getElementById('urgentText').value.trim();
-    if (!text) { 
-        showStatus('введите текст', 'error'); 
-        return; 
-    }
+    if (!text) { showStatus('введите текст', 'error'); return; }
     document.getElementById('messageText').value = TEMPLATES.urgent(text);
     closeModal('urgentModal');
     document.getElementById('urgentText').value = '';
     showStatus('✓ шаблон вставлен', 'success');
 };
 
-// ===== ОТПРАВКА МЕРОПРИЯТИЯ С ОПРОСОМ (СВЯЗНОЕ СООБЩЕНИЕ) =====
+// ===== ОТПРАВКА МЕРОПРИЯТИЯ С ОПРОСОМ =====
 window.sendEventPoll = async function() {
     console.log('sendEventPoll');
     
-    const name = document.getElementById('eventName').value;
-    const date = document.getElementById('eventDate').value;
-    const time = document.getElementById('eventTime').value;
-    const place = document.getElementById('eventPlace').value;
-    const dresscode = document.getElementById('eventDresscode').value;
-    const bring = document.getElementById('eventBring').value;
+    const name = document.getElementById('eventName').value.trim();
+    const date = document.getElementById('eventDate').value.trim();
+    const time = document.getElementById('eventTime').value.trim();
+    const place = document.getElementById('eventPlace').value.trim();
+    const dresscode = document.getElementById('eventDresscode').value.trim();
+    const bring = document.getElementById('eventBring').value.trim();
     
     if (!name || !date || !time) {
         showStatus('заполните название, дату и время', 'error');
         return;
     }
     
-    const groupId = getSelectedGroup();
-    if (!groupId) {
-        showStatus('выберите группу', 'error');
-        return;
-    }
+    const groupId = CONFIG.MAIN_GROUP;
     
-    // Формируем красивое сообщение с рамкой
+    // Формируем сообщение
     const infoMessage = 
         `╔════════════════════════════╗\n` +
         `║         🎪 МЕРОПРИЯТИЕ       ║\n` +
@@ -275,7 +190,7 @@ window.sendEventPoll = async function() {
             })
         });
         
-        // Отправляем опрос с вопросом, привязанным к мероприятию
+        // Отправляем опрос
         const response = await fetch(`${CONFIG.API_URL}${CONFIG.BOT_TOKEN}/sendPoll`, {
             method: 'POST',
             headers: {'Content-Type': 'application/json'},
@@ -294,7 +209,7 @@ window.sendEventPoll = async function() {
             messagesCount++;
             document.getElementById('messagesCount').textContent = messagesCount;
             showStatus('✓ мероприятие и опрос отправлены', 'success');
-            addToHistory(`мероприятие: ${name} с опросом`, 'success');
+            addToHistory(`мероприятие: ${name}`, 'success');
             closeModal('eventModal');
             
             // Очищаем поля
@@ -312,7 +227,7 @@ window.sendEventPoll = async function() {
     }
 };
 
-// ===== ОТПРАВКА РОДНОГО ОПРОСА =====
+// ===== ОТПРАВКА ОПРОСА =====
 window.sendNativePoll = async function() {
     console.log('sendNativePoll');
     const question = document.getElementById('pollQuestion').value.trim();
@@ -321,18 +236,12 @@ window.sendNativePoll = async function() {
         return;
     }
     
-    const groupId = getSelectedGroup();
-    if (!groupId) {
-        showStatus('выберите группу', 'error');
-        return;
-    }
-    
     try {
         const response = await fetch(`${CONFIG.API_URL}${CONFIG.BOT_TOKEN}/sendPoll`, {
             method: 'POST',
             headers: {'Content-Type': 'application/json'},
             body: JSON.stringify({
-                chat_id: groupId,
+                chat_id: CONFIG.MAIN_GROUP,
                 question: question,
                 options: ["✅ Пойду", "🤔 Не уверен", "❌ Не пойду"],
                 is_anonymous: false,
@@ -360,18 +269,13 @@ window.sendNativePoll = async function() {
 // ===== БЫСТРЫЙ ОПРОС =====
 window.sendQuickPoll = async function() {
     console.log('sendQuickPoll');
-    const groupId = getSelectedGroup();
-    if (!groupId) {
-        showStatus('выберите группу', 'error');
-        return;
-    }
     
     try {
         const response = await fetch(`${CONFIG.API_URL}${CONFIG.BOT_TOKEN}/sendPoll`, {
             method: 'POST',
             headers: {'Content-Type': 'application/json'},
             body: JSON.stringify({
-                chat_id: groupId,
+                chat_id: CONFIG.MAIN_GROUP,
                 question: "Кто идет на мероприятие?",
                 options: ["✅ Пойду", "🤔 Не уверен", "❌ Не пойду"],
                 is_anonymous: false
@@ -396,12 +300,12 @@ window.sendQuickPoll = async function() {
 // ===== ТОЛЬКО ТЕКСТ МЕРОПРИЯТИЯ =====
 window.createEventInvite = function() {
     console.log('createEventInvite');
-    const name = document.getElementById('eventName').value;
-    const date = document.getElementById('eventDate').value;
-    const time = document.getElementById('eventTime').value;
-    const place = document.getElementById('eventPlace').value;
-    const dresscode = document.getElementById('eventDresscode').value;
-    const bring = document.getElementById('eventBring').value;
+    const name = document.getElementById('eventName').value.trim();
+    const date = document.getElementById('eventDate').value.trim();
+    const time = document.getElementById('eventTime').value.trim();
+    const place = document.getElementById('eventPlace').value.trim();
+    const dresscode = document.getElementById('eventDresscode').value.trim();
+    const bring = document.getElementById('eventBring').value.trim();
     
     if (!name || !date || !time) {
         showStatus('заполните название, дату и время', 'error');
@@ -430,29 +334,13 @@ window.createEventInvite = function() {
     showStatus('✓ текст мероприятия создан', 'success');
 };
 
-// ===== ПОЛУЧЕНИЕ ID ГРУППЫ =====
-function getSelectedGroup() {
-    const selector = document.getElementById('groupSelector');
-    if (selector.value === 'custom') {
-        const input = document.getElementById('customGroupId');
-        return input.value.trim() || null;
-    }
-    return selector.value;
-}
-
 // ===== ОТПРАВКА ОБЫЧНОГО СООБЩЕНИЯ =====
 window.sendMessage = async function() {
     console.log('sendMessage');
     const message = document.getElementById('messageText').value.trim();
-    const groupId = getSelectedGroup();
     
     if (!message) {
         showStatus('введите сообщение', 'error');
-        return;
-    }
-    
-    if (!groupId) {
-        showStatus('выберите группу', 'error');
         return;
     }
     
@@ -461,7 +349,7 @@ window.sendMessage = async function() {
             method: 'POST',
             headers: {'Content-Type': 'application/json'},
             body: JSON.stringify({
-                chat_id: groupId,
+                chat_id: CONFIG.MAIN_GROUP,
                 text: message,
                 parse_mode: 'HTML'
             })
@@ -483,24 +371,10 @@ window.sendMessage = async function() {
     }
 };
 
-// ===== ТЕСТ =====
-window.sendTestMessage = function() {
-    const message = document.getElementById('messageText').value.trim();
-    if (!message) { 
-        showStatus('нет сообщения', 'error'); 
-        return; 
-    }
-    showStatus('🔬 тест режим', 'info');
-    addToHistory(`[тест] ${message}`, 'info');
-};
-
 // ===== КОПИРОВАТЬ =====
 window.copyToClipboard = function() {
     const message = document.getElementById('messageText').value.trim();
-    if (!message) { 
-        showStatus('нечего копировать', 'error'); 
-        return; 
-    }
+    if (!message) { showStatus('нечего копировать', 'error'); return; }
     navigator.clipboard.writeText(message).then(() => showStatus('✓ скопировано', 'success'));
 };
 
@@ -533,34 +407,19 @@ function updateHistory() {
     list.innerHTML = html;
 }
 
-function saveHistory() { 
-    localStorage.setItem('edubot_history', JSON.stringify(messageHistory)); 
-}
+function saveHistory() { localStorage.setItem('edubot_history', JSON.stringify(messageHistory)); }
 
 function loadHistory() {
     const saved = localStorage.getItem('edubot_history');
-    if (saved) { 
-        try { 
-            messageHistory = JSON.parse(saved); 
-            updateHistory(); 
-        } catch (e) {} 
-    }
+    if (saved) { try { messageHistory = JSON.parse(saved); updateHistory(); } catch (e) {} }
 }
 
 window.clearHistory = function() {
-    if (confirm('Очистить историю?')) { 
-        messageHistory = []; 
-        updateHistory(); 
-        saveHistory(); 
-        showStatus('✓ история очищена', 'info'); 
-    }
+    if (confirm('Очистить историю?')) { messageHistory = []; updateHistory(); saveHistory(); showStatus('✓ история очищена', 'info'); }
 };
 
 window.exportHistory = function() {
-    if (messageHistory.length === 0) { 
-        showStatus('история пуста', 'error'); 
-        return; 
-    }
+    if (messageHistory.length === 0) { showStatus('история пуста', 'error'); return; }
     const data = JSON.stringify(messageHistory, null, 2);
     const blob = new Blob([data], {type: 'application/json'});
     const url = URL.createObjectURL(blob);
