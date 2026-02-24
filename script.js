@@ -1,7 +1,7 @@
 // ===== КОНФИГУРАЦИЯ БОТА =====
 const CONFIG = {
     BOT_TOKEN: '8526725790:AAEu_vqnQ0hcn4gJUstOb2-bTCO7kIalQ7U',
-    MAIN_GROUP: '-4695039051',
+    MAIN_GROUP: '-1004695039051',
     API_URL: 'https://api.telegram.org/bot'
 };
 
@@ -474,3 +474,4 @@ function updateSessionTime() {
         }
     }, 1000);
 }
+
