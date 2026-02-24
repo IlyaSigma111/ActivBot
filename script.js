@@ -1,8 +1,6 @@
 // ===== КОНФИГУРАЦИЯ БОТА =====
 const CONFIG = {
     BOT_TOKEN: '8526725790:AAEu_vqnQ0hcn4gJUstOb2-bTCO7kIalQ7U',
-    MAIN_GROUP: '-1004695039051',  // Для супергруппы
-    MAIN_GROUP_ALT: '-4695039051',  // Для обычной группы (запасной вариант)
     API_URL: 'https://api.telegram.org/bot'
 };
 
@@ -11,7 +9,8 @@ let messageHistory = [];
 let sessionStartTime = new Date();
 let messagesCount = 0;
 let currentTemplateType = '';
-let activeGroupId = '-1004695039051'; // По умолчанию пробуем с -100
+let groupId = null;
+let groupCheckAttempts = 0;
 
 // ===== ШАБЛОНЫ =====
 const TEMPLATES = {
@@ -50,8 +49,8 @@ document.addEventListener('DOMContentLoaded', () => {
         tokenDisplay.textContent = `токен: ${CONFIG.BOT_TOKEN.substring(0, 10)}...`;
     }
     
-    // Проверяем доступ к группе
-    setTimeout(checkGroupAccess, 1500);
+    // Пытаемся найти группу
+    setTimeout(findGroup, 1000);
 });
 
 function setupEventListeners() {
@@ -164,59 +163,52 @@ window.submitUrgent = function() {
     showStatus('✓ шаблон вставлен', 'success');
 };
 
-// ===== ПРОВЕРКА ДОСТУПА К ГРУППЕ =====
-window.checkGroupAccess = async function() {
-    showStatus('🔍 проверка группы...', 'info', true);
+// ===== ПОИСК ГРУППЫ =====
+async function findGroup() {
+    showStatus('🔍 Поиск группы...', 'info', true);
     
     try {
-        // Пробуем отправить тестовое сообщение (потом удалим)
-        const response = await fetch(`${CONFIG.API_URL}${CONFIG.BOT_TOKEN}/sendMessage`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/x-www-form-urlencoded',
-            },
-            body: new URLSearchParams({
-                chat_id: activeGroupId,
-                text: '🔍 Проверка связи...'
-            })
-        });
-        
+        const response = await fetch(`${CONFIG.API_URL}${CONFIG.BOT_TOKEN}/getUpdates`);
         const data = await response.json();
         
-        if (data.ok) {
-            showStatus('✓ Группа доступна!', 'success');
-            document.getElementById('activeGroupDisplay').innerHTML = `<i class="fas fa-check-circle"></i> группа подключена`;
-            
-            // Удаляем тестовое сообщение
-            setTimeout(async () => {
-                await fetch(`${CONFIG.API_URL}${CONFIG.BOT_TOKEN}/deleteMessage`, {
-                    method: 'POST',
-                    headers: {'Content-Type': 'application/x-www-form-urlencoded'},
-                    body: new URLSearchParams({
-                        chat_id: activeGroupId,
-                        message_id: data.result.message_id
-                    })
-                });
-            }, 2000);
-        } else {
-            // Если не сработало с -100, пробуем без -100
-            if (activeGroupId === CONFIG.MAIN_GROUP) {
-                activeGroupId = CONFIG.MAIN_GROUP_ALT;
-                showStatus(`🔄 пробую другой ID: ${activeGroupId}`, 'info');
-                setTimeout(checkGroupAccess, 1000);
-            } else {
-                showStatus(`✗ Группа не найдена. ID: ${activeGroupId}`, 'error');
-                showStatus('👉 Добавьте бота в группу и сделайте админом', 'info');
+        if (data.ok && data.result.length > 0) {
+            // Ищем последний чат
+            for (let i = data.result.length - 1; i >= 0; i--) {
+                const update = data.result[i];
+                if (update.message && update.message.chat) {
+                    const chat = update.message.chat;
+                    if (chat.type === 'group' || chat.type === 'supergroup') {
+                        groupId = chat.id;
+                        const groupName = chat.title || 'без названия';
+                        showStatus(`✓ Найдена группа: ${groupName} (ID: ${groupId})`, 'success');
+                        document.getElementById('activeGroupDisplay').innerHTML = `<i class="fas fa-check-circle"></i> ${groupName}`;
+                        return;
+                    }
+                }
             }
+        }
+        
+        // Если не нашли, пробуем еще
+        groupCheckAttempts++;
+        if (groupCheckAttempts < 5) {
+            showStatus(`🔄 Попытка ${groupCheckAttempts}/5...`, 'info');
+            setTimeout(findGroup, 3000);
+        } else {
+            showStatus('✗ Группа не найдена. Напишите что-нибудь в группу', 'error');
         }
     } catch (error) {
         showStatus(`✗ Ошибка: ${error.message}`, 'error');
     }
-};
+}
 
 // ===== ОТПРАВКА МЕРОПРИЯТИЯ С ОПРОСОМ =====
 window.sendEventPoll = async function() {
     console.log('sendEventPoll');
+    
+    if (!groupId) {
+        showStatus('❌ Сначала найдите группу', 'error');
+        return;
+    }
     
     const name = document.getElementById('eventName').value.trim();
     const date = document.getElementById('eventDate').value.trim();
@@ -247,7 +239,7 @@ window.sendEventPoll = async function() {
                 'Content-Type': 'application/x-www-form-urlencoded',
             },
             body: new URLSearchParams({
-                chat_id: activeGroupId,
+                chat_id: groupId,
                 text: infoMessage
             })
         });
@@ -266,7 +258,7 @@ window.sendEventPoll = async function() {
                 'Content-Type': 'application/x-www-form-urlencoded',
             },
             body: new URLSearchParams({
-                chat_id: activeGroupId,
+                chat_id: groupId,
                 question: `Кто идет на "${name}"?`,
                 options: JSON.stringify(["✅ Пойду", "🤔 Не уверен", "❌ Не пойду"]),
                 is_anonymous: 'false'
@@ -299,6 +291,12 @@ window.sendEventPoll = async function() {
 // ===== ОТПРАВКА ОПРОСА =====
 window.sendNativePoll = async function() {
     console.log('sendNativePoll');
+    
+    if (!groupId) {
+        showStatus('❌ Сначала найдите группу', 'error');
+        return;
+    }
+    
     const question = document.getElementById('pollQuestion').value.trim();
     if (!question) {
         showStatus('введите вопрос', 'error');
@@ -312,7 +310,7 @@ window.sendNativePoll = async function() {
                 'Content-Type': 'application/x-www-form-urlencoded',
             },
             body: new URLSearchParams({
-                chat_id: activeGroupId,
+                chat_id: groupId,
                 question: question,
                 options: JSON.stringify(["✅ Пойду", "🤔 Не уверен", "❌ Не пойду"]),
                 is_anonymous: 'false'
@@ -340,6 +338,11 @@ window.sendNativePoll = async function() {
 window.sendQuickPoll = async function() {
     console.log('sendQuickPoll');
     
+    if (!groupId) {
+        showStatus('❌ Сначала найдите группу', 'error');
+        return;
+    }
+    
     try {
         const response = await fetch(`${CONFIG.API_URL}${CONFIG.BOT_TOKEN}/sendPoll`, {
             method: 'POST',
@@ -347,7 +350,7 @@ window.sendQuickPoll = async function() {
                 'Content-Type': 'application/x-www-form-urlencoded',
             },
             body: new URLSearchParams({
-                chat_id: activeGroupId,
+                chat_id: groupId,
                 question: "Кто идет на мероприятие?",
                 options: JSON.stringify(["✅ Пойду", "🤔 Не уверен", "❌ Не пойду"]),
                 is_anonymous: 'false'
@@ -409,6 +412,12 @@ window.createEventInvite = function() {
 // ===== ОТПРАВКА ОБЫЧНОГО СООБЩЕНИЯ =====
 window.sendMessage = async function() {
     console.log('sendMessage');
+    
+    if (!groupId) {
+        showStatus('❌ Сначала найдите группу', 'error');
+        return;
+    }
+    
     const message = document.getElementById('messageText').value.trim();
     
     if (!message || /^[\s.]+$/.test(message)) {
@@ -423,7 +432,7 @@ window.sendMessage = async function() {
                 'Content-Type': 'application/x-www-form-urlencoded',
             },
             body: new URLSearchParams({
-                chat_id: activeGroupId,
+                chat_id: groupId,
                 text: message
             })
         });
@@ -438,17 +447,6 @@ window.sendMessage = async function() {
             document.getElementById('messageText').value = '';
         } else {
             showStatus(`✗ ошибка: ${data.description}`, 'error');
-            
-            // Если ошибка "chat not found", пробуем другой ID
-            if (data.description.includes('chat not found')) {
-                if (activeGroupId === CONFIG.MAIN_GROUP) {
-                    activeGroupId = CONFIG.MAIN_GROUP_ALT;
-                    showStatus(`🔄 Пробую другой ID: ${activeGroupId}`, 'info');
-                } else {
-                    activeGroupId = CONFIG.MAIN_GROUP;
-                    showStatus(`🔄 Пробую другой ID: ${activeGroupId}`, 'info');
-                }
-            }
         }
     } catch (error) {
         showStatus(`✗ ошибка: ${error.message}`, 'error');
