@@ -8,15 +8,16 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 </head>
-<body>
-    <div class="gradient-bg">
-        <div class="blob blob-1"></div>
-        <div class="blob blob-2"></div>
-        <div class="blob blob-3"></div>
+<body class="dark-theme">
+    <div class="theme-toggle">
+        <button id="themeSwitcher" class="theme-btn">
+            <i class="fas fa-sun"></i>
+            <i class="fas fa-moon"></i>
+        </button>
     </div>
 
     <div class="container">
-        <!-- Header с глянцевым эффектом -->
+        <!-- Header -->
         <header class="glass-header">
             <div class="header-content">
                 <div class="logo-area">
@@ -91,11 +92,11 @@
                 <div class="templates-grid">
                     <!-- Шаблон 1: Активность под постом -->
                     <div class="template-item" onclick="useTemplate('activity')">
-                        <div class="template-icon" style="background: linear-gradient(135deg, #FF6B6B, #FF8E53);">
+                        <div class="template-icon" style="background: linear-gradient(135deg, #E53E3E, #DD6B20);">
                             <i class="fas fa-fire"></i>
                         </div>
                         <div class="template-info">
-                            <h3>Запрос активности 🔥</h3>
+                            <h3>Запрос активности</h3>
                             <p>Попросить активничать под постом</p>
                         </div>
                         <i class="fas fa-chevron-right template-arrow"></i>
@@ -103,11 +104,11 @@
 
                     <!-- Шаблон 2: Приглашение на мероприятие -->
                     <div class="template-item" onclick="openEventModal()">
-                        <div class="template-icon" style="background: linear-gradient(135deg, #4CAF50, #45B649);">
+                        <div class="template-icon" style="background: linear-gradient(135deg, #2B6CB0, #3182CE);">
                             <i class="fas fa-calendar-alt"></i>
                         </div>
                         <div class="template-info">
-                            <h3>Приглашение на мероприятие 🎪</h3>
+                            <h3>Приглашение на мероприятие</h3>
                             <p>Создать приглашение с деталями</p>
                         </div>
                         <i class="fas fa-chevron-right template-arrow"></i>
@@ -115,11 +116,11 @@
 
                     <!-- Шаблон 3: Опрос о участии -->
                     <div class="template-item" onclick="useTemplate('poll')">
-                        <div class="template-icon" style="background: linear-gradient(135deg, #9C27B0, #BA68C8);">
+                        <div class="template-icon" style="background: linear-gradient(135deg, #6B46C1, #805AD5);">
                             <i class="fas fa-poll"></i>
                         </div>
                         <div class="template-info">
-                            <h3>Опрос "Кто пойдет?" 📊</h3>
+                            <h3>Опрос "Кто пойдет?"</h3>
                             <p>Быстрый опрос о участии</p>
                         </div>
                         <i class="fas fa-chevron-right template-arrow"></i>
@@ -127,11 +128,11 @@
 
                     <!-- Шаблон 4: Напоминание -->
                     <div class="template-item" onclick="useTemplate('deadline')">
-                        <div class="template-icon" style="background: linear-gradient(135deg, #FFA726, #FFB74D);">
+                        <div class="template-icon" style="background: linear-gradient(135deg, #B45309, #D97706);">
                             <i class="fas fa-bell"></i>
                         </div>
                         <div class="template-info">
-                            <h3>Напоминание ⏰</h3>
+                            <h3>Напоминание</h3>
                             <p>О сдаче работ или дедлайне</p>
                         </div>
                         <i class="fas fa-chevron-right template-arrow"></i>
@@ -139,11 +140,11 @@
 
                     <!-- Шаблон 5: Сбор ссылок -->
                     <div class="template-item" onclick="useTemplate('links')">
-                        <div class="template-icon" style="background: linear-gradient(135deg, #26C6DA, #00BCD4);">
+                        <div class="template-icon" style="background: linear-gradient(135deg, #0F766E, #0D9488);">
                             <i class="fas fa-link"></i>
                         </div>
                         <div class="template-info">
-                            <h3>Сбор ссылок 🔗</h3>
+                            <h3>Сбор ссылок</h3>
                             <p>Запросить ссылки на работы</p>
                         </div>
                         <i class="fas fa-chevron-right template-arrow"></i>
@@ -151,11 +152,11 @@
 
                     <!-- Шаблон 6: Поздравление -->
                     <div class="template-item" onclick="useTemplate('congrats')">
-                        <div class="template-icon" style="background: linear-gradient(135deg, #F06292, #EC407A);">
+                        <div class="template-icon" style="background: linear-gradient(135deg, #B83280, #D53F8C);">
                             <i class="fas fa-gift"></i>
                         </div>
                         <div class="template-info">
-                            <h3>Поздравление 🎉</h3>
+                            <h3>Поздравление</h3>
                             <p>С праздником или событием</p>
                         </div>
                         <i class="fas fa-chevron-right template-arrow"></i>
@@ -163,11 +164,11 @@
 
                     <!-- Шаблон 7: Срочное -->
                     <div class="template-item" onclick="useTemplate('urgent')">
-                        <div class="template-icon" style="background: linear-gradient(135deg, #EF5350, #E53935);">
+                        <div class="template-icon" style="background: linear-gradient(135deg, #C53030, #E53E3E);">
                             <i class="fas fa-exclamation-triangle"></i>
                         </div>
                         <div class="template-info">
-                            <h3>Срочное объявление ⚡</h3>
+                            <h3>Срочное объявление</h3>
                             <p>Важная информация</p>
                         </div>
                         <i class="fas fa-chevron-right template-arrow"></i>
@@ -175,11 +176,11 @@
 
                     <!-- Шаблон 8: Отчет -->
                     <div class="template-item" onclick="useTemplate('report')">
-                        <div class="template-icon" style="background: linear-gradient(135deg, #5C6BC0, #3F51B5);">
+                        <div class="template-icon" style="background: linear-gradient(135deg, #1F5F5F, #2C7A7A);">
                             <i class="fas fa-clipboard-list"></i>
                         </div>
                         <div class="template-info">
-                            <h3>Отчет о мероприятии 📝</h3>
+                            <h3>Отчет о мероприятии</h3>
                             <p>Обратная связь после события</p>
                         </div>
                         <i class="fas fa-chevron-right template-arrow"></i>
@@ -201,7 +202,7 @@
                     </div>
                 </div>
 
-                <!-- Выбор группы (с тестовой по умолчанию) -->
+                <!-- Выбор группы -->
                 <div class="selector-group">
                     <label class="input-label">
                         <i class="fas fa-robot"></i>
@@ -254,6 +255,9 @@
                         <i class="fas fa-history"></i>
                         <span>История отправки</span>
                         <span class="history-badge" id="historyCount">0</span>
+                        <button class="history-export" onclick="exportHistory()" title="Экспорт">
+                            <i class="fas fa-download"></i>
+                        </button>
                     </div>
                     <div class="history-list" id="historyList">
                         <div class="history-empty">
@@ -335,7 +339,7 @@
         </div>
     </div>
 
-    <!-- Подвал с информацией -->
+    <!-- Подвал -->
     <div class="glass-footer">
         <div class="footer-info">
             <i class="fas fa-shield-alt"></i>
