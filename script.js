@@ -1,7 +1,7 @@
 // ===== КОНФИГУРАЦИЯ БОТА =====
 const CONFIG = {
     BOT_TOKEN: '8526725790:AAEu_vqnQ0hcn4gJUstOb2-bTCO7kIalQ7U',
-    CHAT_ID: '-1003844776132',  // НОВЫЙ ID супергруппы!
+    CHAT_ID: '-1003844776132',  // РАБОЧИЙ ID!
     API_URL: 'https://api.telegram.org/bot'
 };
 
@@ -48,9 +48,9 @@ document.addEventListener('DOMContentLoaded', () => {
         tokenDisplay.textContent = `токен: ${CONFIG.BOT_TOKEN.substring(0, 10)}...`;
     }
     
-    // Показываем ID группы
+    // Показываем что группа найдена
     document.getElementById('activeGroupDisplay').innerHTML = 
-        `<i class="fas fa-check-circle"></i> ID: ${CONFIG.CHAT_ID}`;
+        `<i class="fas fa-check-circle" style="color: #4ade80;"></i> группа подключена`;
 });
 
 function setupEventListeners() {
@@ -179,7 +179,9 @@ async function sendToTelegram(method, params) {
             })
         });
         
-        return await response.json();
+        const data = await response.json();
+        console.log('Ответ Telegram:', data);
+        return data;
     } catch (error) {
         console.error('Ошибка:', error);
         return { ok: false, description: error.message };
