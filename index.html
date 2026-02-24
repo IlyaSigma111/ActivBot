@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
+    <title>EduBot | Педагогический помощник</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="gradient-bg">
+        <div class="blob blob-1"></div>
+        <div class="blob blob-2"></div>
+        <div class="blob blob-3"></div>
+    </div>
+
+    <div class="container">
+        <!-- Header с глянцевым эффектом -->
+        <header class="glass-header">
+            <div class="header-content">
+                <div class="logo-area">
+                    <div class="logo-glow">
+                        <i class="fas fa-chalkboard-teacher"></i>
+                    </div>
+                    <div class="logo-text-wrapper">
+                        <h1 class="logo-text">Edu<span>Bot</span></h1>
+                        <p class="logo-sub">Педагогический помощник</p>
+                    </div>
+                </div>
+                
+                <div class="header-right">
+                    <div class="group-badge" id="activeGroupBadge">
+                        <i class="fas fa-users"></i>
+                        <span>Тестовая группа</span>
+                    </div>
+                    <div class="status-pulse" id="botStatus">
+                        <div class="pulse-dot"></div>
+                        <span>Online</span>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- Быстрая статистика -->
+        <div class="stats-row">
+            <div class="stat-glass-card">
+                <div class="stat-icon">
+                    <i class="fas fa-message"></i>
+                </div>
+                <div class="stat-info">
+                    <span class="stat-value" id="messagesCount">0</span>
+                    <span class="stat-label">Отправлено</span>
+                </div>
+            </div>
+            
+            <div class="stat-glass-card">
+                <div class="stat-icon">
+                    <i class="fas fa-file-lines"></i>
+                </div>
+                <div class="stat-info">
+                    <span class="stat-value" id="templatesCount">8</span>
+                    <span class="stat-label">Шаблонов</span>
+                </div>
+            </div>
+            
+            <div class="stat-glass-card">
+                <div class="stat-icon">
+                    <i class="fas fa-clock"></i>
+                </div>
+                <div class="stat-info">
+                    <span class="stat-value" id="sessionTime">00:00</span>
+                    <span class="stat-label">Сессия</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Основная сетка -->
+        <div class="dashboard-grid">
+            
+            <!-- Левая колонка - Шаблоны -->
+            <div class="glass-card templates-card">
+                <div class="card-header">
+                    <div class="card-title-wrapper">
+                        <i class="fas fa-template card-header-icon"></i>
+                        <h2>Шаблоны сообщений</h2>
+                    </div>
+                    <span class="card-badge">Для педагогов</span>
+                </div>
+
+                <div class="templates-grid">
+                    <!-- Шаблон 1: Активность под постом -->
+                    <div class="template-item" onclick="useTemplate('activity')">
+                        <div class="template-icon" style="background: linear-gradient(135deg, #FF6B6B, #FF8E53);">
+                            <i class="fas fa-fire"></i>
+                        </div>
+                        <div class="template-info">
+                            <h3>Запрос активности 🔥</h3>
+                            <p>Попросить активничать под постом</p>
+                        </div>
+                        <i class="fas fa-chevron-right template-arrow"></i>
+                    </div>
+
+                    <!-- Шаблон 2: Приглашение на мероприятие -->
+                    <div class="template-item" onclick="openEventModal()">
+                        <div class="template-icon" style="background: linear-gradient(135deg, #4CAF50, #45B649);">
+                            <i class="fas fa-calendar-alt"></i>
+                        </div>
+                        <div class="template-info">
+                            <h3>Приглашение на мероприятие 🎪</h3>
+                            <p>Создать приглашение с деталями</p>
+                        </div>
+                        <i class="fas fa-chevron-right template-arrow"></i>
+                    </div>
+
+                    <!-- Шаблон 3: Опрос о участии -->
+                    <div class="template-item" onclick="useTemplate('poll')">
+                        <div class="template-icon" style="background: linear-gradient(135deg, #9C27B0, #BA68C8);">
+                            <i class="fas fa-poll"></i>
+                        </div>
+                        <div class="template-info">
+                            <h3>Опрос "Кто пойдет?" 📊</h3>
+                            <p>Быстрый опрос о участии</p>
+                        </div>
+                        <i class="fas fa-chevron-right template-arrow"></i>
+                    </div>
+
+                    <!-- Шаблон 4: Напоминание -->
+                    <div class="template-item" onclick="useTemplate('deadline')">
+                        <div class="template-icon" style="background: linear-gradient(135deg, #FFA726, #FFB74D);">
+                            <i class="fas fa-bell"></i>
+                        </div>
+                        <div class="template-info">
+                            <h3>Напоминание ⏰</h3>
+                            <p>О сдаче работ или дедлайне</p>
+                        </div>
+                        <i class="fas fa-chevron-right template-arrow"></i>
+                    </div>
+
+                    <!-- Шаблон 5: Сбор ссылок -->
+                    <div class="template-item" onclick="useTemplate('links')">
+                        <div class="template-icon" style="background: linear-gradient(135deg, #26C6DA, #00BCD4);">
+                            <i class="fas fa-link"></i>
+                        </div>
+                        <div class="template-info">
+                            <h3>Сбор ссылок 🔗</h3>
+                            <p>Запросить ссылки на работы</p>
+                        </div>
+                        <i class="fas fa-chevron-right template-arrow"></i>
+                    </div>
+
+                    <!-- Шаблон 6: Поздравление -->
+                    <div class="template-item" onclick="useTemplate('congrats')">
+                        <div class="template-icon" style="background: linear-gradient(135deg, #F06292, #EC407A);">
+                            <i class="fas fa-gift"></i>
+                        </div>
+                        <div class="template-info">
+                            <h3>Поздравление 🎉</h3>
+                            <p>С праздником или событием</p>
+                        </div>
+                        <i class="fas fa-chevron-right template-arrow"></i>
+                    </div>
+
+                    <!-- Шаблон 7: Срочное -->
+                    <div class="template-item" onclick="useTemplate('urgent')">
+                        <div class="template-icon" style="background: linear-gradient(135deg, #EF5350, #E53935);">
+                            <i class="fas fa-exclamation-triangle"></i>
+                        </div>
+                        <div class="template-info">
+                            <h3>Срочное объявление ⚡</h3>
+                            <p>Важная информация</p>
+                        </div>
+                        <i class="fas fa-chevron-right template-arrow"></i>
+                    </div>
+
+                    <!-- Шаблон 8: Отчет -->
+                    <div class="template-item" onclick="useTemplate('report')">
+                        <div class="template-icon" style="background: linear-gradient(135deg, #5C6BC0, #3F51B5);">
+                            <i class="fas fa-clipboard-list"></i>
+                        </div>
+                        <div class="template-info">
+                            <h3>Отчет о мероприятии 📝</h3>
+                            <p>Обратная связь после события</p>
+                        </div>
+                        <i class="fas fa-chevron-right template-arrow"></i>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Правая колонка - Редактор и отправка -->
+            <div class="glass-card editor-card">
+                <div class="card-header">
+                    <div class="card-title-wrapper">
+                        <i class="fas fa-pen-to-square card-header-icon"></i>
+                        <h2>Редактор сообщения</h2>
+                    </div>
+                    <div class="header-actions">
+                        <button class="icon-btn" onclick="clearEditor()" title="Очистить">
+                            <i class="fas fa-eraser"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Выбор группы (с тестовой по умолчанию) -->
+                <div class="selector-group">
+                    <label class="input-label">
+                        <i class="fas fa-robot"></i>
+                        <span>Получатель:</span>
+                    </label>
+                    <select id="groupSelector" class="glass-select">
+                        <option value="-5169688120" selected>📚 Тестовая группа детей</option>
+                        <option value="custom">➕ Добавить свой ID</option>
+                    </select>
+                    
+                    <div id="customGroupInput" class="custom-group-input hidden">
+                        <input type="text" class="glass-input" placeholder="ID группы (например: -1001234567890)">
+                    </div>
+                </div>
+
+                <!-- Поле ввода сообщения -->
+                <div class="message-input-area">
+                    <label class="input-label">
+                        <i class="fas fa-comment"></i>
+                        <span>Сообщение:</span>
+                    </label>
+                    <textarea 
+                        id="messageText" 
+                        class="glass-textarea" 
+                        placeholder="Введите сообщение или выберите шаблон..."
+                    ></textarea>
+                </div>
+
+                <!-- Кнопки действий -->
+                <div class="action-buttons">
+                    <button class="btn-primary btn-large" onclick="sendMessage()">
+                        <i class="fas fa-paper-plane"></i>
+                        <span>Отправить сейчас</span>
+                    </button>
+                    
+                    <button class="btn-secondary" onclick="sendTestMessage()">
+                        <i class="fas fa-vial"></i>
+                        <span>Тест</span>
+                    </button>
+                </div>
+
+                <!-- Статус отправки -->
+                <div id="messageStatus" class="status-message hidden">
+                    <!-- Динамический статус -->
+                </div>
+
+                <!-- История отправки -->
+                <div class="history-section">
+                    <div class="history-header">
+                        <i class="fas fa-history"></i>
+                        <span>История отправки</span>
+                        <span class="history-badge" id="historyCount">0</span>
+                    </div>
+                    <div class="history-list" id="historyList">
+                        <div class="history-empty">
+                            <i class="fas fa-inbox"></i>
+                            <p>История пуста</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Быстрые действия (мобильное меню) -->
+        <div class="quick-actions-bar">
+            <button class="quick-action-btn" onclick="useTemplate('activity')">
+                <i class="fas fa-fire"></i>
+                <span>Активность</span>
+            </button>
+            <button class="quick-action-btn" onclick="openEventModal()">
+                <i class="fas fa-calendar"></i>
+                <span>Мероприятие</span>
+            </button>
+            <button class="quick-action-btn" onclick="useTemplate('poll')">
+                <i class="fas fa-poll"></i>
+                <span>Опрос</span>
+            </button>
+            <button class="quick-action-btn" onclick="useTemplate('urgent')">
+                <i class="fas fa-exclamation"></i>
+                <span>Срочно</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- Модальное окно для мероприятия -->
+    <div id="eventModal" class="modal">
+        <div class="modal-content glass-card">
+            <div class="modal-header">
+                <h3>Приглашение на мероприятие</h3>
+                <button class="modal-close" onclick="closeEventModal()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            
+            <div class="modal-body">
+                <div class="modal-input-group">
+                    <label>Название мероприятия</label>
+                    <input type="text" id="eventName" class="glass-input" placeholder="Например: Осенний бал">
+                </div>
+                
+                <div class="modal-input-group">
+                    <label>Дата проведения</label>
+                    <input type="text" id="eventDate" class="glass-input" placeholder="15 ноября 2024">
+                </div>
+                
+                <div class="modal-input-group">
+                    <label>Время</label>
+                    <input type="text" id="eventTime" class="glass-input" placeholder="18:00">
+                </div>
+                
+                <div class="modal-input-group">
+                    <label>Место сбора</label>
+                    <input type="text" id="eventPlace" class="glass-input" placeholder="Актовый зал">
+                </div>
+                
+                <div class="modal-input-group">
+                    <label>Форма одежды</label>
+                    <input type="text" id="eventDresscode" class="glass-input" placeholder="Парадная форма">
+                </div>
+                
+                <div class="modal-input-group">
+                    <label>Что взять с собой</label>
+                    <input type="text" id="eventBring" class="glass-input" placeholder="Сменная обувь, хорошее настроение">
+                </div>
+            </div>
+            
+            <div class="modal-footer">
+                <button class="btn-secondary" onclick="closeEventModal()">Отмена</button>
+                <button class="btn-primary" onclick="createEventInvite()">Создать приглашение</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Подвал с информацией -->
+    <div class="glass-footer">
+        <div class="footer-info">
+            <i class="fas fa-shield-alt"></i>
+            <span>Детский режим • Все сообщения модерируются</span>
+        </div>
+        <div class="footer-info">
+            <i class="fas fa-mobile-alt"></i>
+            <span>Адаптировано для мобильных</span>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
