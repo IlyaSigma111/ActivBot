@@ -61,6 +61,7 @@ document.addEventListener('DOMContentLoaded', () => {
     initializeApp();
     updateSessionTime();
     loadHistory();
+    initializeTheme();
 });
 
 function initializeApp() {
@@ -91,6 +92,27 @@ function setupEventListeners() {
             }
         });
     }
+}
+
+// ===== ТЕМА =====
+function initializeTheme() {
+    const themeSwitcher = document.getElementById('themeSwitcher');
+    const savedTheme = localStorage.getItem('theme') || 'dark';
+    
+    // Применяем сохраненную тему
+    document.body.className = savedTheme + '-theme';
+    
+    themeSwitcher.addEventListener('click', () => {
+        if (document.body.classList.contains('dark-theme')) {
+            document.body.classList.remove('dark-theme');
+            document.body.classList.add('light-theme');
+            localStorage.setItem('theme', 'light');
+        } else {
+            document.body.classList.remove('light-theme');
+            document.body.classList.add('dark-theme');
+            localStorage.setItem('theme', 'dark');
+        }
+    });
 }
 
 // ===== ОТПРАВКА СООБЩЕНИЙ =====
@@ -160,7 +182,6 @@ async function sendTestMessage() {
         return;
     }
     
-    // Имитация отправки (без реального API)
     showStatus('🔬 Тестовый режим: сообщение не отправлено в Telegram', 'info');
     addToHistory(`[ТЕСТ] ${message}`, 'info');
 }
@@ -217,7 +238,7 @@ function useTemplate(type) {
     
     // Подсвечиваем текстовое поле
     textarea.style.transition = 'all 0.3s';
-    textarea.style.boxShadow = '0 0 0 3px rgba(255, 255, 255, 0.3)';
+    textarea.style.boxShadow = '0 0 0 3px var(--primary)';
     setTimeout(() => {
         textarea.style.boxShadow = 'none';
     }, 500);
@@ -371,7 +392,6 @@ function updateSessionTime() {
         const diff = Math.floor((now - sessionStartTime) / 1000);
         const hours = Math.floor(diff / 3600).toString().padStart(2, '0');
         const minutes = Math.floor((diff % 3600) / 60).toString().padStart(2, '0');
-        const seconds = (diff % 60).toString().padStart(2, '0');
         
         document.getElementById('sessionTime').textContent = `${hours}:${minutes}`;
     }, 1000);
@@ -382,11 +402,7 @@ function clearEditor() {
     showStatus('Редактор очищен', 'info');
 }
 
-// ===== ДОПОЛНИТЕЛЬНЫЕ ФУНКЦИИ =====
-function checkBotStatus() {
-    showStatus('Бот работает в штатном режиме ✅', 'success');
-}
-
+// ===== ЭКСПОРТ =====
 function exportHistory() {
     const dataStr = JSON.stringify(messageHistory, null, 2);
     const dataUri = 'data:application/json;charset=utf-8,'+ encodeURIComponent(dataStr);
@@ -401,7 +417,7 @@ function exportHistory() {
     showStatus('История экспортирована', 'success');
 }
 
-// Добавляем обработку клика вне модального окна
+// Закрытие модального окна по клику вне
 window.onclick = function(event) {
     const modal = document.getElementById('eventModal');
     if (event.target === modal) {
