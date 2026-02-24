@@ -4,13 +4,16 @@ const CONFIG = {
     API_URL: 'https://api.telegram.org/bot'
 };
 
+// ===== ID ГРУППЫ =====
+// Попробуйте оба варианта:
+let CHAT_ID = '-4695039051';  // Вариант 1: без -100
+// let CHAT_ID = '-1004695039051'; // Вариант 2: с -100 (раскомментируйте если надо)
+
 // ===== СОСТОЯНИЕ =====
 let messageHistory = [];
 let sessionStartTime = new Date();
 let messagesCount = 0;
 let currentTemplateType = '';
-let CHAT_ID = null;
-let foundGroups = [];
 
 // ===== ШАБЛОНЫ =====
 const TEMPLATES = {
@@ -49,8 +52,8 @@ document.addEventListener('DOMContentLoaded', () => {
         tokenDisplay.textContent = `токен: ${CONFIG.BOT_TOKEN.substring(0, 10)}...`;
     }
     
-    // Начинаем поиск группы
-    findGroup();
+    // Показываем какой ID используем
+    showStatus(`🆔 Используется ID: ${CHAT_ID}`, 'info');
 });
 
 function setupEventListeners() {
@@ -163,66 +166,21 @@ window.submitUrgent = function() {
     showStatus('✓ шаблон вставлен', 'success');
 };
 
-// ===== ПОИСК ГРУППЫ =====
-async function findGroup() {
-    showStatus('🔍 Поиск группы... Напишите что-нибудь в чат', 'info', true);
+// ===== ТЕСТОВАЯ ОТПРАВКА =====
+window.testSend = async function() {
+    const result = await sendToTelegram('sendMessage', {
+        text: '🔍 Тестовое сообщение от EduBot'
+    });
     
-    try {
-        // Сначала удаляем вебхук если есть
-        await fetch(`${CONFIG.API_URL}${CONFIG.BOT_TOKEN}/deleteWebhook`);
-        
-        // Получаем обновления
-        const response = await fetch(`${CONFIG.API_URL}${CONFIG.BOT_TOKEN}/getUpdates`);
-        const data = await response.json();
-        
-        if (data.ok && data.result.length > 0) {
-            foundGroups = [];
-            
-            // Ищем все группы
-            data.result.forEach(update => {
-                if (update.message && update.message.chat) {
-                    const chat = update.message.chat;
-                    if (chat.type === 'group' || chat.type === 'supergroup') {
-                        foundGroups.push({
-                            id: chat.id,
-                            title: chat.title || 'Без названия',
-                            type: chat.type
-                        });
-                    }
-                }
-            });
-            
-            if (foundGroups.length > 0) {
-                // Берем последнюю найденную группу
-                CHAT_ID = foundGroups[foundGroups.length - 1].id;
-                const groupInfo = foundGroups[foundGroups.length - 1];
-                
-                showStatus(`✓ Найдена группа: ${groupInfo.title} (ID: ${CHAT_ID})`, 'success');
-                document.getElementById('activeGroupDisplay').innerHTML = 
-                    `<i class="fas fa-check-circle"></i> ${groupInfo.title}`;
-                
-                console.log('Доступные группы:', foundGroups);
-            } else {
-                showStatus('✗ Группа не найдена. Напишите сообщение в группу', 'error');
-                setTimeout(findGroup, 5000);
-            }
-        } else {
-            showStatus('⏳ Ожидание сообщений в группе...', 'info', true);
-            setTimeout(findGroup, 3000);
-        }
-    } catch (error) {
-        showStatus(`✗ Ошибка: ${error.message}`, 'error');
-        setTimeout(findGroup, 5000);
+    if (result.ok) {
+        showStatus('✓ Тест успешен!', 'success');
+    } else {
+        showStatus(`✗ Ошибка: ${result.description}`, 'error');
     }
-}
+};
 
 // ===== УНИВЕРСАЛЬНАЯ ФУНКЦИЯ ОТПРАВКИ =====
 async function sendToTelegram(method, params) {
-    if (!CHAT_ID) {
-        showStatus('❌ Сначала дождитесь поиска группы', 'error');
-        return { ok: false };
-    }
-    
     const url = `${CONFIG.API_URL}${CONFIG.BOT_TOKEN}/${method}`;
     
     try {
