@@ -1,7 +1,8 @@
 // ===== КОНФИГУРАЦИЯ БОТА =====
 const CONFIG = {
     BOT_TOKEN: '8526725790:AAEu_vqnQ0hcn4gJUstOb2-bTCO7kIalQ7U',
-    MAIN_GROUP: '-1004695039051',
+    MAIN_GROUP: '-1004695039051',  // Для супергруппы
+    MAIN_GROUP_ALT: '-4695039051',  // Для обычной группы (запасной вариант)
     API_URL: 'https://api.telegram.org/bot'
 };
 
@@ -10,6 +11,7 @@ let messageHistory = [];
 let sessionStartTime = new Date();
 let messagesCount = 0;
 let currentTemplateType = '';
+let activeGroupId = '-1004695039051'; // По умолчанию пробуем с -100
 
 // ===== ШАБЛОНЫ =====
 const TEMPLATES = {
@@ -47,6 +49,9 @@ document.addEventListener('DOMContentLoaded', () => {
     if (tokenDisplay) {
         tokenDisplay.textContent = `токен: ${CONFIG.BOT_TOKEN.substring(0, 10)}...`;
     }
+    
+    // Проверяем доступ к группе
+    setTimeout(checkGroupAccess, 1500);
 });
 
 function setupEventListeners() {
@@ -159,16 +164,53 @@ window.submitUrgent = function() {
     showStatus('✓ шаблон вставлен', 'success');
 };
 
-// ===== ПРОВЕРКА ПРАВ БОТА =====
-window.checkBotStatus = async function() {
+// ===== ПРОВЕРКА ДОСТУПА К ГРУППЕ =====
+window.checkGroupAccess = async function() {
+    showStatus('🔍 проверка группы...', 'info', true);
+    
     try {
-        const response = await fetch(`${CONFIG.API_URL}${CONFIG.BOT_TOKEN}/getMe`);
+        // Пробуем отправить тестовое сообщение (потом удалим)
+        const response = await fetch(`${CONFIG.API_URL}${CONFIG.BOT_TOKEN}/sendMessage`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+            },
+            body: new URLSearchParams({
+                chat_id: activeGroupId,
+                text: '🔍 Проверка связи...'
+            })
+        });
+        
         const data = await response.json();
+        
         if (data.ok) {
-            showStatus(`✓ Бот: @${data.result.username}`, 'success');
+            showStatus('✓ Группа доступна!', 'success');
+            document.getElementById('activeGroupDisplay').innerHTML = `<i class="fas fa-check-circle"></i> группа подключена`;
+            
+            // Удаляем тестовое сообщение
+            setTimeout(async () => {
+                await fetch(`${CONFIG.API_URL}${CONFIG.BOT_TOKEN}/deleteMessage`, {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+                    body: new URLSearchParams({
+                        chat_id: activeGroupId,
+                        message_id: data.result.message_id
+                    })
+                });
+            }, 2000);
+        } else {
+            // Если не сработало с -100, пробуем без -100
+            if (activeGroupId === CONFIG.MAIN_GROUP) {
+                activeGroupId = CONFIG.MAIN_GROUP_ALT;
+                showStatus(`🔄 пробую другой ID: ${activeGroupId}`, 'info');
+                setTimeout(checkGroupAccess, 1000);
+            } else {
+                showStatus(`✗ Группа не найдена. ID: ${activeGroupId}`, 'error');
+                showStatus('👉 Добавьте бота в группу и сделайте админом', 'info');
+            }
         }
     } catch (error) {
-        showStatus('✗ Бот не отвечает', 'error');
+        showStatus(`✗ Ошибка: ${error.message}`, 'error');
     }
 };
 
@@ -198,14 +240,14 @@ window.sendEventPoll = async function() {
         `👇 ОПРОС НИЖЕ 👇`;
     
     try {
-        // Сначала отправляем текст
+        // Отправляем текст
         const textResponse = await fetch(`${CONFIG.API_URL}${CONFIG.BOT_TOKEN}/sendMessage`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/x-www-form-urlencoded',
             },
             body: new URLSearchParams({
-                chat_id: CONFIG.MAIN_GROUP,
+                chat_id: activeGroupId,
                 text: infoMessage
             })
         });
@@ -217,14 +259,14 @@ window.sendEventPoll = async function() {
             return;
         }
         
-        // Потом отправляем опрос
+        // Отправляем опрос
         const pollResponse = await fetch(`${CONFIG.API_URL}${CONFIG.BOT_TOKEN}/sendPoll`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/x-www-form-urlencoded',
             },
             body: new URLSearchParams({
-                chat_id: CONFIG.MAIN_GROUP,
+                chat_id: activeGroupId,
                 question: `Кто идет на "${name}"?`,
                 options: JSON.stringify(["✅ Пойду", "🤔 Не уверен", "❌ Не пойду"]),
                 is_anonymous: 'false'
@@ -270,7 +312,7 @@ window.sendNativePoll = async function() {
                 'Content-Type': 'application/x-www-form-urlencoded',
             },
             body: new URLSearchParams({
-                chat_id: CONFIG.MAIN_GROUP,
+                chat_id: activeGroupId,
                 question: question,
                 options: JSON.stringify(["✅ Пойду", "🤔 Не уверен", "❌ Не пойду"]),
                 is_anonymous: 'false'
@@ -305,7 +347,7 @@ window.sendQuickPoll = async function() {
                 'Content-Type': 'application/x-www-form-urlencoded',
             },
             body: new URLSearchParams({
-                chat_id: CONFIG.MAIN_GROUP,
+                chat_id: activeGroupId,
                 question: "Кто идет на мероприятие?",
                 options: JSON.stringify(["✅ Пойду", "🤔 Не уверен", "❌ Не пойду"]),
                 is_anonymous: 'false'
@@ -381,7 +423,7 @@ window.sendMessage = async function() {
                 'Content-Type': 'application/x-www-form-urlencoded',
             },
             body: new URLSearchParams({
-                chat_id: CONFIG.MAIN_GROUP,
+                chat_id: activeGroupId,
                 text: message
             })
         });
@@ -396,6 +438,17 @@ window.sendMessage = async function() {
             document.getElementById('messageText').value = '';
         } else {
             showStatus(`✗ ошибка: ${data.description}`, 'error');
+            
+            // Если ошибка "chat not found", пробуем другой ID
+            if (data.description.includes('chat not found')) {
+                if (activeGroupId === CONFIG.MAIN_GROUP) {
+                    activeGroupId = CONFIG.MAIN_GROUP_ALT;
+                    showStatus(`🔄 Пробую другой ID: ${activeGroupId}`, 'info');
+                } else {
+                    activeGroupId = CONFIG.MAIN_GROUP;
+                    showStatus(`🔄 Пробую другой ID: ${activeGroupId}`, 'info');
+                }
+            }
         }
     } catch (error) {
         showStatus(`✗ ошибка: ${error.message}`, 'error');
@@ -481,7 +534,7 @@ function showStatus(message, type = 'info', keep = false) {
     status.classList.remove('hidden');
     
     if (!keep) {
-        setTimeout(() => status.classList.add('hidden'), 2000);
+        setTimeout(() => status.classList.add('hidden'), 3000);
     }
 }
 
@@ -497,6 +550,3 @@ function updateSessionTime() {
         }
     }, 1000);
 }
-
-// Проверяем статус бота при загрузке
-setTimeout(checkBotStatus, 1000);
