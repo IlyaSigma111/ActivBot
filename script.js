@@ -87,7 +87,10 @@ window.openUrgentModal = function() { openModal('urgentModal'); };
 // ===== ОБРАБОТЧИКИ МОДАЛОК =====
 window.submitLink = function() {
     const link = document.getElementById('linkInput').value.trim();
-    if (!link) { showStatus('введите ссылку', 'error'); return; }
+    if (!link) { 
+        showStatus('введите ссылку', 'error'); 
+        return; 
+    }
     document.getElementById('messageText').value = TEMPLATES.activity(link);
     closeModal('linkModal');
     document.getElementById('linkInput').value = '';
@@ -105,7 +108,10 @@ window.submitProject = function() {
 window.submitTask = function() {
     const task = document.getElementById('taskInput').value.trim();
     const date = document.getElementById('dateInput').value.trim();
-    if (!task || !date) { showStatus('заполните все поля', 'error'); return; }
+    if (!task || !date) { 
+        showStatus('заполните все поля', 'error'); 
+        return; 
+    }
     document.getElementById('messageText').value = TEMPLATES.deadline(task, date);
     closeModal('taskModal');
     document.getElementById('taskInput').value = '';
@@ -139,7 +145,10 @@ window.submitReport = function() {
 
 window.submitUrgent = function() {
     const text = document.getElementById('urgentText').value.trim();
-    if (!text) { showStatus('введите текст', 'error'); return; }
+    if (!text) { 
+        showStatus('введите текст', 'error'); 
+        return; 
+    }
     document.getElementById('messageText').value = TEMPLATES.urgent(text);
     closeModal('urgentModal');
     document.getElementById('urgentText').value = '';
@@ -339,8 +348,9 @@ window.sendMessage = async function() {
     console.log('sendMessage');
     const message = document.getElementById('messageText').value.trim();
     
-    if (!message) {
-        showStatus('введите сообщение', 'error');
+    // Проверка на пустое сообщение или просто точку/пробелы
+    if (!message || message === '.' || message === '..' || message === '...' || /^\.+$/.test(message) || /^\s+$/.test(message)) {
+        showStatus('нельзя отправить пустое сообщение', 'error');
         return;
     }
     
@@ -374,7 +384,10 @@ window.sendMessage = async function() {
 // ===== КОПИРОВАТЬ =====
 window.copyToClipboard = function() {
     const message = document.getElementById('messageText').value.trim();
-    if (!message) { showStatus('нечего копировать', 'error'); return; }
+    if (!message) { 
+        showStatus('нечего копировать', 'error'); 
+        return; 
+    }
     navigator.clipboard.writeText(message).then(() => showStatus('✓ скопировано', 'success'));
 };
 
