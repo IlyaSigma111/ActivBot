@@ -1,6 +1,7 @@
 // ===== КОНФИГУРАЦИЯ БОТА =====
 const CONFIG = {
     BOT_TOKEN: '8526725790:AAEu_vqnQ0hcn4gJUstOb2-bTCO7kIalQ7U',
+    CHAT_ID: '-1004695039051',  // ID супергруппы
     API_URL: 'https://api.telegram.org/bot'
 };
 
@@ -9,8 +10,6 @@ let messageHistory = [];
 let sessionStartTime = new Date();
 let messagesCount = 0;
 let currentTemplateType = '';
-let groupId = null;
-let groupCheckAttempts = 0;
 
 // ===== ШАБЛОНЫ =====
 const TEMPLATES = {
@@ -49,8 +48,8 @@ document.addEventListener('DOMContentLoaded', () => {
         tokenDisplay.textContent = `токен: ${CONFIG.BOT_TOKEN.substring(0, 10)}...`;
     }
     
-    // Пытаемся найти группу
-    setTimeout(findGroup, 1000);
+    // Проверяем доступ к API
+    checkBotStatus();
 });
 
 function setupEventListeners() {
@@ -163,53 +162,42 @@ window.submitUrgent = function() {
     showStatus('✓ шаблон вставлен', 'success');
 };
 
-// ===== ПОИСК ГРУППЫ =====
-async function findGroup() {
-    showStatus('🔍 Поиск группы...', 'info', true);
-    
+// ===== ПРОВЕРКА СТАТУСА БОТА =====
+async function checkBotStatus() {
     try {
-        const response = await fetch(`${CONFIG.API_URL}${CONFIG.BOT_TOKEN}/getUpdates`);
+        const response = await fetch(`${CONFIG.API_URL}${CONFIG.BOT_TOKEN}/getMe`);
         const data = await response.json();
-        
-        if (data.ok && data.result.length > 0) {
-            // Ищем последний чат
-            for (let i = data.result.length - 1; i >= 0; i--) {
-                const update = data.result[i];
-                if (update.message && update.message.chat) {
-                    const chat = update.message.chat;
-                    if (chat.type === 'group' || chat.type === 'supergroup') {
-                        groupId = chat.id;
-                        const groupName = chat.title || 'без названия';
-                        showStatus(`✓ Найдена группа: ${groupName} (ID: ${groupId})`, 'success');
-                        document.getElementById('activeGroupDisplay').innerHTML = `<i class="fas fa-check-circle"></i> ${groupName}`;
-                        return;
-                    }
-                }
-            }
-        }
-        
-        // Если не нашли, пробуем еще
-        groupCheckAttempts++;
-        if (groupCheckAttempts < 5) {
-            showStatus(`🔄 Попытка ${groupCheckAttempts}/5...`, 'info');
-            setTimeout(findGroup, 3000);
-        } else {
-            showStatus('✗ Группа не найдена. Напишите что-нибудь в группу', 'error');
+        if (data.ok) {
+            showStatus(`✓ Бот @${data.result.username} активен`, 'success');
+            console.log('Бот:', data.result);
         }
     } catch (error) {
-        showStatus(`✗ Ошибка: ${error.message}`, 'error');
+        showStatus('✗ Ошибка подключения к боту', 'error');
+    }
+}
+
+// ===== УНИВЕРСАЛЬНАЯ ФУНКЦИЯ ОТПРАВКИ =====
+async function sendToTelegram(method, params) {
+    const url = `${CONFIG.API_URL}${CONFIG.BOT_TOKEN}/${method}`;
+    
+    try {
+        const response = await fetch(url, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(params)
+        });
+        
+        return await response.json();
+    } catch (error) {
+        console.error('Ошибка:', error);
+        return { ok: false, description: error.message };
     }
 }
 
 // ===== ОТПРАВКА МЕРОПРИЯТИЯ С ОПРОСОМ =====
 window.sendEventPoll = async function() {
-    console.log('sendEventPoll');
-    
-    if (!groupId) {
-        showStatus('❌ Сначала найдите группу', 'error');
-        return;
-    }
-    
     const name = document.getElementById('eventName').value.trim();
     const date = document.getElementById('eventDate').value.trim();
     const time = document.getElementById('eventTime').value.trim();
@@ -231,150 +219,98 @@ window.sendEventPoll = async function() {
         `🎒 С собой: ${bring || 'ничего'}\n\n` +
         `👇 ОПРОС НИЖЕ 👇`;
     
-    try {
-        // Отправляем текст
-        const textResponse = await fetch(`${CONFIG.API_URL}${CONFIG.BOT_TOKEN}/sendMessage`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/x-www-form-urlencoded',
-            },
-            body: new URLSearchParams({
-                chat_id: groupId,
-                text: infoMessage
-            })
-        });
+    showStatus('⏳ Отправка...', 'info', true);
+    
+    // Отправляем текст
+    const textResult = await sendToTelegram('sendMessage', {
+        chat_id: CONFIG.CHAT_ID,
+        text: infoMessage
+    });
+    
+    if (!textResult.ok) {
+        showStatus(`✗ Ошибка: ${textResult.description}`, 'error');
+        return;
+    }
+    
+    // Отправляем опрос
+    const pollResult = await sendToTelegram('sendPoll', {
+        chat_id: CONFIG.CHAT_ID,
+        question: `Кто идет на "${name}"?`,
+        options: ["✅ Пойду", "🤔 Не уверен", "❌ Не пойду"],
+        is_anonymous: false
+    });
+    
+    if (pollResult.ok) {
+        messagesCount++;
+        document.getElementById('messagesCount').textContent = messagesCount;
+        showStatus('✓ мероприятие и опрос отправлены', 'success');
+        addToHistory(`мероприятие: ${name}`, 'success');
+        closeModal('eventModal');
         
-        const textData = await textResponse.json();
-        
-        if (!textData.ok) {
-            showStatus(`✗ ошибка: ${textData.description}`, 'error');
-            return;
-        }
-        
-        // Отправляем опрос
-        const pollResponse = await fetch(`${CONFIG.API_URL}${CONFIG.BOT_TOKEN}/sendPoll`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/x-www-form-urlencoded',
-            },
-            body: new URLSearchParams({
-                chat_id: groupId,
-                question: `Кто идет на "${name}"?`,
-                options: JSON.stringify(["✅ Пойду", "🤔 Не уверен", "❌ Не пойду"]),
-                is_anonymous: 'false'
-            })
-        });
-        
-        const pollData = await pollResponse.json();
-        
-        if (pollData.ok) {
-            messagesCount++;
-            document.getElementById('messagesCount').textContent = messagesCount;
-            showStatus('✓ мероприятие и опрос отправлены', 'success');
-            addToHistory(`мероприятие: ${name}`, 'success');
-            closeModal('eventModal');
-            
-            document.getElementById('eventName').value = '';
-            document.getElementById('eventDate').value = '';
-            document.getElementById('eventTime').value = '';
-            document.getElementById('eventPlace').value = '';
-            document.getElementById('eventDresscode').value = '';
-            document.getElementById('eventBring').value = '';
-        } else {
-            showStatus(`✗ ошибка опроса: ${pollData.description}`, 'error');
-        }
-    } catch (error) {
-        showStatus(`✗ ошибка: ${error.message}`, 'error');
+        // Очищаем поля
+        document.getElementById('eventName').value = '';
+        document.getElementById('eventDate').value = '';
+        document.getElementById('eventTime').value = '';
+        document.getElementById('eventPlace').value = '';
+        document.getElementById('eventDresscode').value = '';
+        document.getElementById('eventBring').value = '';
+    } else {
+        showStatus(`✗ ошибка опроса: ${pollResult.description}`, 'error');
     }
 };
 
 // ===== ОТПРАВКА ОПРОСА =====
 window.sendNativePoll = async function() {
-    console.log('sendNativePoll');
-    
-    if (!groupId) {
-        showStatus('❌ Сначала найдите группу', 'error');
-        return;
-    }
-    
     const question = document.getElementById('pollQuestion').value.trim();
     if (!question) {
         showStatus('введите вопрос', 'error');
         return;
     }
     
-    try {
-        const response = await fetch(`${CONFIG.API_URL}${CONFIG.BOT_TOKEN}/sendPoll`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/x-www-form-urlencoded',
-            },
-            body: new URLSearchParams({
-                chat_id: groupId,
-                question: question,
-                options: JSON.stringify(["✅ Пойду", "🤔 Не уверен", "❌ Не пойду"]),
-                is_anonymous: 'false'
-            })
-        });
-        
-        const data = await response.json();
-        
-        if (data.ok) {
-            messagesCount++;
-            document.getElementById('messagesCount').textContent = messagesCount;
-            showStatus('✓ опрос создан', 'success');
-            addToHistory('опрос', 'success');
-            closeModal('pollModal');
-            document.getElementById('pollQuestion').value = '';
-        } else {
-            showStatus(`✗ ошибка: ${data.description}`, 'error');
-        }
-    } catch (error) {
-        showStatus(`✗ ошибка: ${error.message}`, 'error');
+    showStatus('⏳ Создание опроса...', 'info', true);
+    
+    const result = await sendToTelegram('sendPoll', {
+        chat_id: CONFIG.CHAT_ID,
+        question: question,
+        options: ["✅ Пойду", "🤔 Не уверен", "❌ Не пойду"],
+        is_anonymous: false
+    });
+    
+    if (result.ok) {
+        messagesCount++;
+        document.getElementById('messagesCount').textContent = messagesCount;
+        showStatus('✓ опрос создан', 'success');
+        addToHistory('опрос', 'success');
+        closeModal('pollModal');
+        document.getElementById('pollQuestion').value = '';
+    } else {
+        showStatus(`✗ ошибка: ${result.description}`, 'error');
     }
 };
 
 // ===== БЫСТРЫЙ ОПРОС =====
 window.sendQuickPoll = async function() {
-    console.log('sendQuickPoll');
+    showStatus('⏳ Создание опроса...', 'info', true);
     
-    if (!groupId) {
-        showStatus('❌ Сначала найдите группу', 'error');
-        return;
-    }
+    const result = await sendToTelegram('sendPoll', {
+        chat_id: CONFIG.CHAT_ID,
+        question: "Кто идет на мероприятие?",
+        options: ["✅ Пойду", "🤔 Не уверен", "❌ Не пойду"],
+        is_anonymous: false
+    });
     
-    try {
-        const response = await fetch(`${CONFIG.API_URL}${CONFIG.BOT_TOKEN}/sendPoll`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/x-www-form-urlencoded',
-            },
-            body: new URLSearchParams({
-                chat_id: groupId,
-                question: "Кто идет на мероприятие?",
-                options: JSON.stringify(["✅ Пойду", "🤔 Не уверен", "❌ Не пойду"]),
-                is_anonymous: 'false'
-            })
-        });
-        
-        const data = await response.json();
-        
-        if (data.ok) {
-            messagesCount++;
-            document.getElementById('messagesCount').textContent = messagesCount;
-            showStatus('✓ опрос создан', 'success');
-            addToHistory('быстрый опрос', 'success');
-        } else {
-            showStatus(`✗ ошибка: ${data.description}`, 'error');
-        }
-    } catch (error) {
-        showStatus(`✗ ошибка: ${error.message}`, 'error');
+    if (result.ok) {
+        messagesCount++;
+        document.getElementById('messagesCount').textContent = messagesCount;
+        showStatus('✓ опрос создан', 'success');
+        addToHistory('быстрый опрос', 'success');
+    } else {
+        showStatus(`✗ ошибка: ${result.description}`, 'error');
     }
 };
 
 // ===== ТОЛЬКО ТЕКСТ МЕРОПРИЯТИЯ =====
 window.createEventInvite = function() {
-    console.log('createEventInvite');
     const name = document.getElementById('eventName').value.trim();
     const date = document.getElementById('eventDate').value.trim();
     const time = document.getElementById('eventTime').value.trim();
@@ -411,13 +347,6 @@ window.createEventInvite = function() {
 
 // ===== ОТПРАВКА ОБЫЧНОГО СООБЩЕНИЯ =====
 window.sendMessage = async function() {
-    console.log('sendMessage');
-    
-    if (!groupId) {
-        showStatus('❌ Сначала найдите группу', 'error');
-        return;
-    }
-    
     const message = document.getElementById('messageText').value.trim();
     
     if (!message || /^[\s.]+$/.test(message)) {
@@ -425,31 +354,21 @@ window.sendMessage = async function() {
         return;
     }
     
-    try {
-        const response = await fetch(`${CONFIG.API_URL}${CONFIG.BOT_TOKEN}/sendMessage`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/x-www-form-urlencoded',
-            },
-            body: new URLSearchParams({
-                chat_id: groupId,
-                text: message
-            })
-        });
-        
-        const data = await response.json();
-        
-        if (data.ok) {
-            messagesCount++;
-            document.getElementById('messagesCount').textContent = messagesCount;
-            showStatus('✓ отправлено', 'success');
-            addToHistory(message, 'success');
-            document.getElementById('messageText').value = '';
-        } else {
-            showStatus(`✗ ошибка: ${data.description}`, 'error');
-        }
-    } catch (error) {
-        showStatus(`✗ ошибка: ${error.message}`, 'error');
+    showStatus('⏳ Отправка...', 'info', true);
+    
+    const result = await sendToTelegram('sendMessage', {
+        chat_id: CONFIG.CHAT_ID,
+        text: message
+    });
+    
+    if (result.ok) {
+        messagesCount++;
+        document.getElementById('messagesCount').textContent = messagesCount;
+        showStatus('✓ отправлено', 'success');
+        addToHistory(message, 'success');
+        document.getElementById('messageText').value = '';
+    } else {
+        showStatus(`✗ ошибка: ${result.description}`, 'error');
     }
 };
 
@@ -500,11 +419,19 @@ function loadHistory() {
 }
 
 window.clearHistory = function() {
-    if (confirm('Очистить историю?')) { messageHistory = []; updateHistory(); saveHistory(); showStatus('✓ история очищена', 'info'); }
+    if (confirm('Очистить историю?')) { 
+        messageHistory = []; 
+        updateHistory(); 
+        saveHistory(); 
+        showStatus('✓ история очищена', 'info'); 
+    }
 };
 
 window.exportHistory = function() {
-    if (messageHistory.length === 0) { showStatus('история пуста', 'error'); return; }
+    if (messageHistory.length === 0) { 
+        showStatus('история пуста', 'error'); 
+        return; 
+    }
     const data = JSON.stringify(messageHistory, null, 2);
     const blob = new Blob([data], {type: 'application/json'});
     const url = URL.createObjectURL(blob);
