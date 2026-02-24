@@ -1,7 +1,7 @@
 // ===== КОНФИГУРАЦИЯ БОТА =====
 const CONFIG = {
     BOT_TOKEN: '8526725790:AAEu_vqnQ0hcn4gJUstOb2-bTCO7kIalQ7U',
-    CHAT_ID: '-1003844776132',  // РАБОЧИЙ ID!
+    CHAT_ID: '-1003844776132',
     API_URL: 'https://api.telegram.org/bot'
 };
 
@@ -47,10 +47,6 @@ document.addEventListener('DOMContentLoaded', () => {
     if (tokenDisplay) {
         tokenDisplay.textContent = `токен: ${CONFIG.BOT_TOKEN.substring(0, 10)}...`;
     }
-    
-    // Показываем что группа найдена
-    document.getElementById('activeGroupDisplay').innerHTML = 
-        `<i class="fas fa-check-circle" style="color: #4ade80;"></i> группа подключена`;
 });
 
 function setupEventListeners() {
@@ -78,18 +74,56 @@ function closeModal(modalId) {
 }
 
 // ===== ОТКРЫТИЕ МОДАЛОК =====
-window.openPollModal = function() { openModal('pollModal'); };
-window.openEventModal = function() { openModal('eventModal'); };
-window.openLinkModal = function(type) { currentTemplateType = type; openModal('linkModal'); };
-window.openProjectModal = function(type) { currentTemplateType = type; openModal('projectModal'); };
-window.openTaskModal = function() { openModal('taskModal'); };
-window.openHolidayModal = function() { openModal('holidayModal'); };
-window.openBirthdayModal = function() { openModal('birthdayModal'); };
-window.openReportModal = function() { openModal('reportModal'); };
-window.openUrgentModal = function() { openModal('urgentModal'); };
+window.openPollModal = function() { 
+    console.log('openPollModal');
+    openModal('pollModal'); 
+};
+
+window.openEventModal = function() { 
+    console.log('openEventModal');
+    openModal('eventModal'); 
+};
+
+window.openLinkModal = function(type) { 
+    console.log('openLinkModal', type);
+    currentTemplateType = type; 
+    openModal('linkModal'); 
+};
+
+window.openProjectModal = function(type) { 
+    console.log('openProjectModal', type);
+    currentTemplateType = type; 
+    openModal('projectModal'); 
+};
+
+window.openTaskModal = function() { 
+    console.log('openTaskModal');
+    openModal('taskModal'); 
+};
+
+window.openHolidayModal = function() { 
+    console.log('openHolidayModal');
+    openModal('holidayModal'); 
+};
+
+window.openBirthdayModal = function() { 
+    console.log('openBirthdayModal');
+    openModal('birthdayModal'); 
+};
+
+window.openReportModal = function() { 
+    console.log('openReportModal');
+    openModal('reportModal'); 
+};
+
+window.openUrgentModal = function() { 
+    console.log('openUrgentModal');
+    openModal('urgentModal'); 
+};
 
 // ===== ОБРАБОТЧИКИ МОДАЛОК =====
 window.submitLink = function() {
+    console.log('submitLink');
     const link = document.getElementById('linkInput').value.trim();
     if (!link) { 
         showStatus('введите ссылку', 'error'); 
@@ -102,6 +136,7 @@ window.submitLink = function() {
 };
 
 window.submitProject = function() {
+    console.log('submitProject');
     const project = document.getElementById('projectInput').value.trim();
     const text = project ? TEMPLATES.links(project) : TEMPLATES.links();
     document.getElementById('messageText').value = text;
@@ -111,6 +146,7 @@ window.submitProject = function() {
 };
 
 window.submitTask = function() {
+    console.log('submitTask');
     const task = document.getElementById('taskInput').value.trim();
     const date = document.getElementById('dateInput').value.trim();
     if (!task || !date) { 
@@ -125,6 +161,7 @@ window.submitTask = function() {
 };
 
 window.submitHoliday = function() {
+    console.log('submitHoliday');
     const holiday = document.getElementById('holidayInput').value.trim();
     const text = holiday ? TEMPLATES.congrats(holiday) : TEMPLATES.congrats();
     document.getElementById('messageText').value = text;
@@ -134,6 +171,7 @@ window.submitHoliday = function() {
 };
 
 window.submitBirthday = function() {
+    console.log('submitBirthday');
     const name = document.getElementById('nameInput').value.trim();
     const text = name ? TEMPLATES.birthday(name) : TEMPLATES.birthday();
     document.getElementById('messageText').value = text;
@@ -143,6 +181,7 @@ window.submitBirthday = function() {
 };
 
 window.submitReport = function() {
+    console.log('submitReport');
     const event = document.getElementById('eventReportInput').value.trim();
     const text = event ? TEMPLATES.report(event) : TEMPLATES.report();
     document.getElementById('messageText').value = text;
@@ -152,6 +191,7 @@ window.submitReport = function() {
 };
 
 window.submitUrgent = function() {
+    console.log('submitUrgent');
     const text = document.getElementById('urgentText').value.trim();
     if (!text) { 
         showStatus('введите текст', 'error'); 
@@ -161,6 +201,44 @@ window.submitUrgent = function() {
     closeModal('urgentModal');
     document.getElementById('urgentText').value = '';
     showStatus('✓ шаблон вставлен', 'success');
+};
+
+// ===== ПРЯМЫЕ ОБРАБОТЧИКИ ДЛЯ ШАБЛОНОВ =====
+window.useTemplate = function(type) {
+    console.log('useTemplate', type);
+    const textarea = document.getElementById('messageText');
+    
+    switch(type) {
+        case 'activity':
+            const link = prompt('Введите ссылку на пост:');
+            if (link) textarea.value = TEMPLATES.activity(link);
+            break;
+        case 'deadline':
+            const task = prompt('Какое задание?');
+            const date = prompt('Дедлайн?');
+            if (task && date) textarea.value = TEMPLATES.deadline(task, date);
+            break;
+        case 'links':
+            const project = prompt('Название проекта?');
+            if (project) textarea.value = TEMPLATES.links(project);
+            break;
+        case 'congrats':
+            const holiday = prompt('Какой праздник?');
+            if (holiday) textarea.value = TEMPLATES.congrats(holiday);
+            break;
+        case 'urgent':
+            const urgentText = prompt('Текст срочного объявления?');
+            if (urgentText) textarea.value = TEMPLATES.urgent(urgentText);
+            break;
+        case 'report':
+            const event = prompt('Название мероприятия?');
+            if (event) textarea.value = TEMPLATES.report(event);
+            break;
+        case 'birthday':
+            const name = prompt('Имя именинника?');
+            if (name) textarea.value = TEMPLATES.birthday(name);
+            break;
+    }
 };
 
 // ===== УНИВЕРСАЛЬНАЯ ФУНКЦИЯ ОТПРАВКИ =====
@@ -179,9 +257,7 @@ async function sendToTelegram(method, params) {
             })
         });
         
-        const data = await response.json();
-        console.log('Ответ Telegram:', data);
-        return data;
+        return await response.json();
     } catch (error) {
         console.error('Ошибка:', error);
         return { ok: false, description: error.message };
@@ -190,6 +266,7 @@ async function sendToTelegram(method, params) {
 
 // ===== ОТПРАВКА МЕРОПРИЯТИЯ С ОПРОСОМ =====
 window.sendEventPoll = async function() {
+    console.log('sendEventPoll');
     const name = document.getElementById('eventName').value.trim();
     const date = document.getElementById('eventDate').value.trim();
     const time = document.getElementById('eventTime').value.trim();
@@ -246,6 +323,7 @@ window.sendEventPoll = async function() {
 
 // ===== ОТПРАВКА ОПРОСА =====
 window.sendNativePoll = async function() {
+    console.log('sendNativePoll');
     const question = document.getElementById('pollQuestion').value.trim();
     if (!question) {
         showStatus('введите вопрос', 'error');
@@ -274,6 +352,7 @@ window.sendNativePoll = async function() {
 
 // ===== БЫСТРЫЙ ОПРОС =====
 window.sendQuickPoll = async function() {
+    console.log('sendQuickPoll');
     showStatus('⏳ Создание опроса...', 'info', true);
     
     const result = await sendToTelegram('sendPoll', {
@@ -294,6 +373,7 @@ window.sendQuickPoll = async function() {
 
 // ===== ТОЛЬКО ТЕКСТ МЕРОПРИЯТИЯ =====
 window.createEventInvite = function() {
+    console.log('createEventInvite');
     const name = document.getElementById('eventName').value.trim();
     const date = document.getElementById('eventDate').value.trim();
     const time = document.getElementById('eventTime').value.trim();
@@ -330,6 +410,7 @@ window.createEventInvite = function() {
 
 // ===== ОТПРАВКА ОБЫЧНОГО СООБЩЕНИЯ =====
 window.sendMessage = async function() {
+    console.log('sendMessage');
     const message = document.getElementById('messageText').value.trim();
     
     if (!message || /^[\s.]+$/.test(message)) {
