@@ -159,23 +159,18 @@ window.submitUrgent = function() {
     showStatus('✓ шаблон вставлен', 'success');
 };
 
-// ===== ВСПОМОГАТЕЛЬНАЯ ФУНКЦИЯ ДЛЯ ЗАПРОСОВ =====
-async function sendTelegramRequest(method, params) {
+// ===== ПРОВЕРКА ПРАВ БОТА =====
+window.checkBotStatus = async function() {
     try {
-        const response = await fetch(`${CONFIG.API_URL}${CONFIG.BOT_TOKEN}/${method}`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(params)
-        });
-        
-        return await response.json();
+        const response = await fetch(`${CONFIG.API_URL}${CONFIG.BOT_TOKEN}/getMe`);
+        const data = await response.json();
+        if (data.ok) {
+            showStatus(`✓ Бот: @${data.result.username}`, 'success');
+        }
     } catch (error) {
-        console.error('Ошибка запроса:', error);
-        throw error;
+        showStatus('✗ Бот не отвечает', 'error');
     }
-}
+};
 
 // ===== ОТПРАВКА МЕРОПРИЯТИЯ С ОПРОСОМ =====
 window.sendEventPoll = async function() {
@@ -193,43 +188,58 @@ window.sendEventPoll = async function() {
         return;
     }
     
-    // Формируем сообщение
     const infoMessage = 
-        `╔════════════════════════════╗\n` +
-        `║         🎪 МЕРОПРИЯТИЕ       ║\n` +
-        `╚════════════════════════════╝\n\n` +
-        `📌 ${name}\n\n` +
+        `🎪 МЕРОПРИЯТИЕ: ${name}\n\n` +
         `📅 Дата: ${date}\n` +
         `⏰ Время: ${time}\n` +
         `📍 Место: ${place || 'не указано'}\n\n` +
         `👔 Дресс-код: ${dresscode || 'любой'}\n` +
         `🎒 С собой: ${bring || 'ничего'}\n\n` +
-        `─────────────────────────────\n` +
         `👇 ОПРОС НИЖЕ 👇`;
     
     try {
-        // Отправляем информацию о мероприятии
-        await sendTelegramRequest('sendMessage', {
-            chat_id: CONFIG.MAIN_GROUP,
-            text: infoMessage
+        // Сначала отправляем текст
+        const textResponse = await fetch(`${CONFIG.API_URL}${CONFIG.BOT_TOKEN}/sendMessage`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+            },
+            body: new URLSearchParams({
+                chat_id: CONFIG.MAIN_GROUP,
+                text: infoMessage
+            })
         });
         
-        // Отправляем опрос
-        const result = await sendTelegramRequest('sendPoll', {
-            chat_id: CONFIG.MAIN_GROUP,
-            question: `Кто идет на "${name}"?`,
-            options: ["✅ Пойду", "🤔 Не уверен", "❌ Не пойду"],
-            is_anonymous: false
+        const textData = await textResponse.json();
+        
+        if (!textData.ok) {
+            showStatus(`✗ ошибка: ${textData.description}`, 'error');
+            return;
+        }
+        
+        // Потом отправляем опрос
+        const pollResponse = await fetch(`${CONFIG.API_URL}${CONFIG.BOT_TOKEN}/sendPoll`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+            },
+            body: new URLSearchParams({
+                chat_id: CONFIG.MAIN_GROUP,
+                question: `Кто идет на "${name}"?`,
+                options: JSON.stringify(["✅ Пойду", "🤔 Не уверен", "❌ Не пойду"]),
+                is_anonymous: 'false'
+            })
         });
         
-        if (result.ok) {
+        const pollData = await pollResponse.json();
+        
+        if (pollData.ok) {
             messagesCount++;
             document.getElementById('messagesCount').textContent = messagesCount;
             showStatus('✓ мероприятие и опрос отправлены', 'success');
             addToHistory(`мероприятие: ${name}`, 'success');
             closeModal('eventModal');
             
-            // Очищаем поля
             document.getElementById('eventName').value = '';
             document.getElementById('eventDate').value = '';
             document.getElementById('eventTime').value = '';
@@ -237,7 +247,7 @@ window.sendEventPoll = async function() {
             document.getElementById('eventDresscode').value = '';
             document.getElementById('eventBring').value = '';
         } else {
-            showStatus(`✗ ошибка: ${result.description}`, 'error');
+            showStatus(`✗ ошибка опроса: ${pollData.description}`, 'error');
         }
     } catch (error) {
         showStatus(`✗ ошибка: ${error.message}`, 'error');
@@ -254,14 +264,22 @@ window.sendNativePoll = async function() {
     }
     
     try {
-        const result = await sendTelegramRequest('sendPoll', {
-            chat_id: CONFIG.MAIN_GROUP,
-            question: question,
-            options: ["✅ Пойду", "🤔 Не уверен", "❌ Не пойду"],
-            is_anonymous: false
+        const response = await fetch(`${CONFIG.API_URL}${CONFIG.BOT_TOKEN}/sendPoll`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+            },
+            body: new URLSearchParams({
+                chat_id: CONFIG.MAIN_GROUP,
+                question: question,
+                options: JSON.stringify(["✅ Пойду", "🤔 Не уверен", "❌ Не пойду"]),
+                is_anonymous: 'false'
+            })
         });
         
-        if (result.ok) {
+        const data = await response.json();
+        
+        if (data.ok) {
             messagesCount++;
             document.getElementById('messagesCount').textContent = messagesCount;
             showStatus('✓ опрос создан', 'success');
@@ -269,7 +287,7 @@ window.sendNativePoll = async function() {
             closeModal('pollModal');
             document.getElementById('pollQuestion').value = '';
         } else {
-            showStatus(`✗ ошибка: ${result.description}`, 'error');
+            showStatus(`✗ ошибка: ${data.description}`, 'error');
         }
     } catch (error) {
         showStatus(`✗ ошибка: ${error.message}`, 'error');
@@ -281,20 +299,28 @@ window.sendQuickPoll = async function() {
     console.log('sendQuickPoll');
     
     try {
-        const result = await sendTelegramRequest('sendPoll', {
-            chat_id: CONFIG.MAIN_GROUP,
-            question: "Кто идет на мероприятие?",
-            options: ["✅ Пойду", "🤔 Не уверен", "❌ Не пойду"],
-            is_anonymous: false
+        const response = await fetch(`${CONFIG.API_URL}${CONFIG.BOT_TOKEN}/sendPoll`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+            },
+            body: new URLSearchParams({
+                chat_id: CONFIG.MAIN_GROUP,
+                question: "Кто идет на мероприятие?",
+                options: JSON.stringify(["✅ Пойду", "🤔 Не уверен", "❌ Не пойду"]),
+                is_anonymous: 'false'
+            })
         });
         
-        if (result.ok) {
+        const data = await response.json();
+        
+        if (data.ok) {
             messagesCount++;
             document.getElementById('messagesCount').textContent = messagesCount;
             showStatus('✓ опрос создан', 'success');
             addToHistory('быстрый опрос', 'success');
         } else {
-            showStatus(`✗ ошибка: ${result.description}`, 'error');
+            showStatus(`✗ ошибка: ${data.description}`, 'error');
         }
     } catch (error) {
         showStatus(`✗ ошибка: ${error.message}`, 'error');
@@ -343,26 +369,33 @@ window.sendMessage = async function() {
     console.log('sendMessage');
     const message = document.getElementById('messageText').value.trim();
     
-    // Проверка на пустое сообщение
     if (!message || /^[\s.]+$/.test(message)) {
         showStatus('нельзя отправить пустое сообщение', 'error');
         return;
     }
     
     try {
-        const result = await sendTelegramRequest('sendMessage', {
-            chat_id: CONFIG.MAIN_GROUP,
-            text: message
+        const response = await fetch(`${CONFIG.API_URL}${CONFIG.BOT_TOKEN}/sendMessage`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+            },
+            body: new URLSearchParams({
+                chat_id: CONFIG.MAIN_GROUP,
+                text: message
+            })
         });
         
-        if (result.ok) {
+        const data = await response.json();
+        
+        if (data.ok) {
             messagesCount++;
             document.getElementById('messagesCount').textContent = messagesCount;
             showStatus('✓ отправлено', 'success');
             addToHistory(message, 'success');
             document.getElementById('messageText').value = '';
         } else {
-            showStatus(`✗ ошибка: ${result.description}`, 'error');
+            showStatus(`✗ ошибка: ${data.description}`, 'error');
         }
     } catch (error) {
         showStatus(`✗ ошибка: ${error.message}`, 'error');
@@ -464,3 +497,6 @@ function updateSessionTime() {
         }
     }, 1000);
 }
+
+// Проверяем статус бота при загрузке
+setTimeout(checkBotStatus, 1000);
