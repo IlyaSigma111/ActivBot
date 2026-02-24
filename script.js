@@ -13,7 +13,7 @@ let currentTemplateType = '';
 
 // ===== ШАБЛОНЫ =====
 const TEMPLATES = {
-    activity: (link = '[ссылка]') => 
+    activity: (link = 'ссылку') => 
         `🔥 РЕБЯТА, ПОАКТИВНИЧАЙТЕ!\n\nНам очень важна ваша поддержка под этим постом:\n${link}\n\nЖду реакции и комментарии! 🙏`,
 
     deadline: (task = 'задание', date = 'завтра') => 
@@ -99,7 +99,8 @@ window.submitLink = function() {
 
 window.submitProject = function() {
     const project = document.getElementById('projectInput').value.trim();
-    document.getElementById('messageText').value = TEMPLATES.links(project || 'проекта');
+    const text = project ? TEMPLATES.links(project) : TEMPLATES.links();
+    document.getElementById('messageText').value = text;
     closeModal('projectModal');
     document.getElementById('projectInput').value = '';
     showStatus('✓ шаблон вставлен', 'success');
@@ -121,7 +122,8 @@ window.submitTask = function() {
 
 window.submitHoliday = function() {
     const holiday = document.getElementById('holidayInput').value.trim();
-    document.getElementById('messageText').value = TEMPLATES.congrats(holiday || 'праздником');
+    const text = holiday ? TEMPLATES.congrats(holiday) : TEMPLATES.congrats();
+    document.getElementById('messageText').value = text;
     closeModal('holidayModal');
     document.getElementById('holidayInput').value = '';
     showStatus('✓ шаблон вставлен', 'success');
@@ -129,7 +131,8 @@ window.submitHoliday = function() {
 
 window.submitBirthday = function() {
     const name = document.getElementById('nameInput').value.trim();
-    document.getElementById('messageText').value = TEMPLATES.birthday(name || 'Друг');
+    const text = name ? TEMPLATES.birthday(name) : TEMPLATES.birthday();
+    document.getElementById('messageText').value = text;
     closeModal('birthdayModal');
     document.getElementById('nameInput').value = '';
     showStatus('✓ шаблон вставлен', 'success');
@@ -137,7 +140,8 @@ window.submitBirthday = function() {
 
 window.submitReport = function() {
     const event = document.getElementById('eventReportInput').value.trim();
-    document.getElementById('messageText').value = TEMPLATES.report(event || 'мероприятия');
+    const text = event ? TEMPLATES.report(event) : TEMPLATES.report();
+    document.getElementById('messageText').value = text;
     closeModal('reportModal');
     document.getElementById('eventReportInput').value = '';
     showStatus('✓ шаблон вставлен', 'success');
@@ -171,21 +175,19 @@ window.sendEventPoll = async function() {
         return;
     }
     
-    const groupId = CONFIG.MAIN_GROUP;
-    
     // Формируем сообщение
     const infoMessage = 
         `╔════════════════════════════╗\n` +
         `║         🎪 МЕРОПРИЯТИЕ       ║\n` +
         `╚════════════════════════════╝\n\n` +
-        `📌 <b>${name}</b>\n\n` +
+        `📌 ${name}\n\n` +
         `📅 Дата: ${date}\n` +
         `⏰ Время: ${time}\n` +
         `📍 Место: ${place || 'не указано'}\n\n` +
         `👔 Дресс-код: ${dresscode || 'любой'}\n` +
         `🎒 С собой: ${bring || 'ничего'}\n\n` +
         `─────────────────────────────\n` +
-        `👇 <b>ОПРОС НИЖЕ 👇</b>`;
+        `👇 ОПРОС НИЖЕ 👇`;
     
     try {
         // Отправляем информацию о мероприятии
@@ -193,9 +195,8 @@ window.sendEventPoll = async function() {
             method: 'POST',
             headers: {'Content-Type': 'application/json'},
             body: JSON.stringify({
-                chat_id: groupId,
-                text: infoMessage,
-                parse_mode: 'HTML'
+                chat_id: CONFIG.MAIN_GROUP,
+                text: infoMessage
             })
         });
         
@@ -204,11 +205,10 @@ window.sendEventPoll = async function() {
             method: 'POST',
             headers: {'Content-Type': 'application/json'},
             body: JSON.stringify({
-                chat_id: groupId,
-                question: `❓ Кто идет на "${name}"?`,
+                chat_id: CONFIG.MAIN_GROUP,
+                question: `Кто идет на "${name}"?`,
                 options: ["✅ Пойду", "🤔 Не уверен", "❌ Не пойду"],
-                is_anonymous: false,
-                allows_multiple_answers: false
+                is_anonymous: false
             })
         });
         
@@ -253,8 +253,7 @@ window.sendNativePoll = async function() {
                 chat_id: CONFIG.MAIN_GROUP,
                 question: question,
                 options: ["✅ Пойду", "🤔 Не уверен", "❌ Не пойду"],
-                is_anonymous: false,
-                allows_multiple_answers: false
+                is_anonymous: false
             })
         });
         
@@ -348,8 +347,8 @@ window.sendMessage = async function() {
     console.log('sendMessage');
     const message = document.getElementById('messageText').value.trim();
     
-    // Проверка на пустое сообщение или просто точку/пробелы
-    if (!message || message === '.' || message === '..' || message === '...' || /^\.+$/.test(message) || /^\s+$/.test(message)) {
+    // Проверка на пустое сообщение
+    if (!message || /^[\s.]+$/.test(message)) {
         showStatus('нельзя отправить пустое сообщение', 'error');
         return;
     }
@@ -360,8 +359,7 @@ window.sendMessage = async function() {
             headers: {'Content-Type': 'application/json'},
             body: JSON.stringify({
                 chat_id: CONFIG.MAIN_GROUP,
-                text: message,
-                parse_mode: 'HTML'
+                text: message
             })
         });
         
